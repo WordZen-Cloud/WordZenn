@@ -9,7 +9,7 @@
     <style>
         :root { --neon-green: #00ff88; --neon-blue: #00d4ff; --neon-purple: #a855f7; --neon-gold: #ffd700; --neon-red: #ff3e3e; }
         body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; width: 100%; position: fixed; }
-
+        
         #splash { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .s-logo { font-size: 3.5rem; font-weight: 200; color: #fff; letter-spacing: 15px; animation: zenFade 3s forwards; }
         @keyframes zenFade { 0% { opacity: 0; transform: scale(0.8); } 50% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1); } }
@@ -23,26 +23,21 @@
         .mode-btn { width: 280px; padding: 20px; border-radius: 20px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1.1rem; letter-spacing: 2px; transition: 0.3s; }
         .normal-mode { border: 2px solid var(--neon-blue); color: var(--neon-blue); }
         .arena-mode { border: 2px solid var(--neon-purple); color: var(--neon-purple); }
-        
-        #arena-lobby { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#000; z-index:20; }
-        #room-ready { text-align:center; display:none; }
-        .start-locked { background: #222 !important; color: #555 !important; cursor: not-allowed !important; border: none !important; }
 
         #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-        #word-container { display: flex; gap: 10px; margin-bottom: 30px; }
-        .letter-box { width: 48px; height: 60px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; background: rgba(255,255,255,0.02); }
+        #word-container { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
+        .letter-box { width: 45px; height: 55px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; }
         .filled { border-color: var(--neon-green) !important; color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
         .active-box { border: 2px solid var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
 
-        #controls-right { position: fixed; top: 25px; right: 15px; display: none; flex-direction: column; gap: 12px; z-index: 100; }
-        .help-btn { width: 70px; padding: 10px 5px; border-radius: 15px; border: 1px solid var(--neon-gold); background: rgba(0,0,0,0.8); text-align: center; cursor: pointer; }
-        
-        #meaning-box { width: 80%; padding: 20px; border-radius: 15px; border: 1px solid var(--neon-purple); background: rgba(168,85,247,0.05); display: none; text-align: center; }
-        #footer { position: fixed; bottom: 20px; font-size: 0.6rem; color: #222; letter-spacing: 3px; }
-        #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
+        #meaning-box { width: 85%; padding: 20px; border-radius: 20px; border: 1px solid var(--neon-purple); background: rgba(168,85,247,0.1); display: none; text-align: center; }
+        .next-lvl-btn { margin-top: 15px; padding: 15px 50px; border-radius: 30px; background: var(--neon-green); border: none; font-weight: bold; font-size: 1.1rem; color: #000; cursor: pointer; }
+        .coin-bonus { margin-top: 10px; color: var(--neon-gold); font-size: 0.9rem; font-weight: bold; }
+
+        #hidden-input { position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
     </style>
 </head>
-<body onclick="document.getElementById('hidden-input').focus()">
+<body onclick="focusInput()">
 
     <div id="splash"><div class="s-logo">WordZen</div></div>
 
@@ -52,89 +47,86 @@
         <div style="width:40px;"></div>
     </div>
 
-    <div id="controls-right">
-        <div class="help-btn" onclick="useHint()">💡<span>İPUCU</span></div>
-        <div class="help-btn" style="border-color:var(--neon-blue);" onclick="skipLevel()">≫<span style="color:var(--neon-blue)">ATLA</span></div>
-    </div>
-
     <div id="main-menu">
-        <div style="font-size:3.5rem; color:white; margin-bottom:40px; letter-spacing:15px; font-weight:100;">WordZen</div>
+        <h1 style="letter-spacing:10px; font-weight:100; margin-bottom:40px;">WordZen</h1>
         <div class="menu-card">
             <div class="mode-btn normal-mode" onclick="startNormal()">NORMAL MOD</div>
             <div class="mode-btn arena-mode" onclick="openLobby()">1v1 ARENA</div>
         </div>
     </div>
 
-    <div id="arena-lobby">
-        <h2 style="color:var(--neon-purple); letter-spacing:5px;">ARENA LOBİSİ</h2>
-        <div id="lobby-ui" style="display:flex; flex-direction:column; align-items:center; gap:20px;">
+    <div id="arena-lobby" style="position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#000; z-index:1000;">
+        <h2 style="color:var(--neon-purple); letter-spacing:5px;">LOBİ</h2>
+        <div id="lobby-ui" style="display:flex; flex-direction:column; gap:20px; align-items:center;">
             <div class="mode-btn arena-mode" onclick="createRoom()">ODA KUR</div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <input type="number" id="room-input" placeholder="KOD" style="background:transparent; border:none; border-bottom:2px solid #555; color:#fff; font-size:1.5rem; width:100px; text-align:center; outline:none;">
-                <div class="mode-btn arena-mode" style="width:120px; padding:10px;" onclick="joinRoom()">KATIL</div>
-            </div>
-            <p onclick="location.reload()" style="color:var(--neon-red); cursor:pointer;">Geri Dön</p>
+            <input type="number" id="room-input" placeholder="ODA KODU" style="background:transparent; border:none; border-bottom:2px solid #555; color:#fff; font-size:1.5rem; width:150px; text-align:center; outline:none;">
+            <div class="mode-btn arena-mode" style="padding:10px;" onclick="joinRoom()">KATIL</div>
+            <p onclick="location.reload()" style="color:var(--neon-red); cursor:pointer;">Geri</p>
         </div>
-        
-        <div id="room-ready">
-            <div style="font-size:0.8rem; color:#666;">ODA KODU</div>
-            <div style="font-size:4rem; color:var(--neon-gold); margin-bottom:10px;" id="display-code">----</div>
-            <p id="player-count" style="color:#888;">Oyuncu Bekleniyor... (1/2)</p>
-            <div id="arena-start-btn" class="mode-btn start-locked" onclick="startArenaMatch()">BAŞLAT</div>
-            <p onclick="location.reload()" style="color:var(--neon-red); cursor:pointer; margin-top:20px;">Odayı Kapat</p>
+        <div id="room-ready" style="display:none; text-align:center;">
+            <div style="font-size:4rem; color:var(--neon-gold);" id="display-code">----</div>
+            <p id="player-count">Bekleniyor... (1/2)</p>
+            <div id="arena-start-btn" class="mode-btn start-locked" style="background:#222;" onclick="startArenaMatch()">BAŞLAT</div>
         </div>
     </div>
 
     <div id="game-screen">
-        <div id="timer-txt" style="font-size:2.5rem; color:var(--neon-red); display:none; margin-bottom:20px; font-weight:bold;">60</div>
-        <div id="game-content">
-            <div id="level-display" style="background:rgba(255,255,255,0.03); padding:10px 30px; border-radius:15px; margin-bottom:30px; text-align:center;">
-                <div id="lvl-txt" style="font-size:0.6rem; color:#555;">BÖLÜM 1</div>
-                <div id="diff-txt" style="color:var(--neon-green); font-weight:bold;">KOLAY</div>
-            </div>
-            <div id="word-container"></div>
-            <div id="meaning-box">
-                <div id="m-text" style="color:#ccc; font-size:0.9rem;"></div>
-                <button id="next-btn" onclick="nextLevel()" style="margin-top:20px; padding:12px 40px; border-radius:25px; background:var(--neon-green); border:none; font-weight:bold; color:#000;">SONRAKİ (+4 🪙)</button>
-            </div>
+        <div id="word-container"></div>
+        <div id="meaning-box">
+            <div style="color:var(--neon-purple); font-size:0.8rem; margin-bottom:5px;">BİLDİN!</div>
+            <div id="m-text" style="font-size:1rem; margin-bottom:15px; color:#ddd;"></div>
+            <button class="next-lvl-btn" onclick="nextLevel()">SONRAKİ SEVİYE</button>
+            <div class="coin-bonus">Kazanılan: +4 🪙 | Toplam: <span id="total-coin-info">0</span></div>
         </div>
     </div>
 
-    <div id="footer">© 2026 WordZen - NO COPYRIGHT</div>
-    <input type="text" id="hidden-input" autocomplete="off">
+    <input type="text" id="hidden-input" autocomplete="off" autocapitalize="characters">
 
 <script>
-    // FIREBASE ENTEGRASYONU [cite: 2026-01-08]
+    // Firebase Ayarları [cite: 2026-01-08, 2026-01-09]
     const firebaseConfig = {
         apiKey: "AIzaSyCFgWqiyOv1UWfehf8zUtu4XqsXTrRdcZc",
         authDomain: "wordzen-2e052.firebaseapp.com",
         databaseURL: "https://wordzen-2e052-default-rtdb.firebaseio.com",
         projectId: "wordzen-2e052",
-        appId: "1:309225718128:web:7492c68f23f859424f114f" 
+        appId: "1:309225718128:web:7492c68f23f859424f114f"
     };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    
+    // Güvenli Firebase Başlatma
+    let database;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        database = firebase.database();
+    } catch(e) { console.log("Firebase beklemede..."); }
 
-    const words = [{a:"ADA", m:"Sularla çevrili kara parçası."}, {a:"BARDAK", m:"İçecek kabı."}, {a:"LÜGAT", m:"Sözlük."}];
-    let current = 0, coins = 16, userGuess = [], isArena = false, timer, isFinished = false, roomCode = null;
+    const words = [{a:"ADA", m:"Dört tarafı sularla çevrili kara parçası."}, {a:"ELMA", m:"Kırmızı veya yeşil renkli, sevilen bir meyve."}, {a:"LÜGAT", m:"Kelimelerin anlamlarını içeren kitap, sözlük."}];
+    let current = 0, coins = 16, userGuess = [], isArena = false, isFinished = false, roomCode = null;
 
-    window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; document.getElementById('main-menu').style.display='flex'; }, 3000); };
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('splash').style.display='none';
+            document.getElementById('main-menu').style.display='flex';
+        }, 2500);
+    };
+
+    function focusInput() { document.getElementById('hidden-input').focus(); }
+
+    function openLobby() { document.getElementById('main-menu').style.display='none'; document.getElementById('arena-lobby').style.display='flex'; }
 
     function createRoom() {
-        roomCode = Math.floor(1000+Math.random()*8999);
+        roomCode = Math.floor(1000 + Math.random() * 8999);
         database.ref('rooms/' + roomCode).set({ status: "waiting", p1: "ready", p2: "empty" });
-        document.getElementById('lobby-ui').style.display='none';
-        document.getElementById('room-ready').style.display='block';
+        document.getElementById('lobby-ui').style.display = 'none';
+        document.getElementById('room-ready').style.display = 'block';
         document.getElementById('display-code').innerText = roomCode;
 
         database.ref('rooms/' + roomCode + '/p2').on('value', (snap) => {
             if(snap.val() === "ready") {
                 document.getElementById('player-count').innerText = "Oyuncu: 2/2";
-                document.getElementById('player-count').style.color = "var(--neon-green)";
-                document.getElementById('arena-start-btn').classList.remove('start-locked');
+                document.getElementById('arena-start-btn').style.background = "var(--neon-green)";
+                document.getElementById('arena-start-btn').style.color = "#000";
             }
         });
-        database.ref('rooms/' + roomCode + '/status').on('value', (snap) => { if(snap.val() === "playing") startArenaMatch(); });
     }
 
     function joinRoom() {
@@ -148,60 +140,111 @@
     }
 
     function startNormal() {
-        isArena = false; document.getElementById('main-menu').style.display='none'; document.getElementById('header').style.display='flex';
-        document.getElementById('game-screen').style.display='flex'; document.getElementById('controls-right').style.display='flex'; initRound();
+        isArena = false; document.getElementById('main-menu').style.display='none';
+        document.getElementById('header').style.display='flex';
+        document.getElementById('game-screen').style.display='flex';
+        initRound();
     }
 
     function startArenaMatch() {
-        isArena = true; document.getElementById('arena-lobby').style.display='none'; document.getElementById('header').style.display='flex';
-        document.getElementById('game-screen').style.display='flex'; document.getElementById('timer-txt').style.display='block'; startTimer(); initRound();
+        isArena = true; document.getElementById('arena-lobby').style.display='none';
+        document.getElementById('header').style.display='flex';
+        document.getElementById('game-screen').style.display='flex';
+        initRound();
     }
 
     function initRound() {
-        isFinished = false; const data = words[current % words.length];
-        document.getElementById('lvl-txt').innerText = "BÖLÜM " + (current + 1);
-        document.getElementById('m-text').innerText = data.m; document.getElementById('meaning-box').style.display = "none";
-        document.getElementById('coin-txt').innerText = coins; const container = document.getElementById('word-container');
-        container.innerHTML = ""; userGuess = [];
+        isFinished = false;
+        const data = words[current % words.length];
+        document.getElementById('m-text').innerText = data.m;
+        document.getElementById('meaning-box').style.display = "none";
+        document.getElementById('coin-txt').innerText = coins;
+        
+        const container = document.getElementById('word-container');
+        container.innerHTML = "";
+        userGuess = [];
+
         data.a.split('').forEach((char, i) => {
-            const box = document.createElement('div'); box.className = 'letter-box';
-            if(i === 0) { box.innerText = char; box.classList.add('filled'); userGuess[0] = char; }
-            else { userGuess[i] = null; if(userGuess.indexOf(null) === i) box.classList.add('active-box'); }
+            const box = document.createElement('div');
+            box.className = 'letter-box';
+            if(i === 0) {
+                box.innerText = char;
+                box.classList.add('filled');
+                userGuess[0] = char;
+            } else {
+                userGuess[i] = null;
+                if(userGuess.indexOf(null) === i) box.classList.add('active-box');
+            }
             container.appendChild(box);
         });
     }
 
-    document.getElementById('hidden-input').oninput = (e) => {
+    // Geri Silme ve Harf Girişi Fix [cite: 2026-01-09]
+    document.getElementById('hidden-input').addEventListener('input', (e) => {
         if(isFinished) return;
+        
+        // Silme kontrolü (Input boşaldıysa silme yapılmış demektir)
+        if (e.inputType === "deleteContentBackward") {
+            handleDelete();
+            return;
+        }
+
         let char = e.target.value.slice(-1).toUpperCase();
         if(/[A-ZÇĞİÖŞÜ]/.test(char)) {
             let idx = userGuess.indexOf(null);
-            if(idx !== -1) { userGuess[idx] = char; updateBoxes(); if(!userGuess.includes(null)) check(); }
+            if(idx !== -1) {
+                userGuess[idx] = char;
+                updateBoxes();
+                if(!userGuess.includes(null)) check();
+            }
         }
-        e.target.value = "";
-    };
+        e.target.value = ""; // Inputu her zaman temizle
+    });
+
+    // Klavye Backspace yakalayıcı (Alternatif)
+    document.getElementById('hidden-input').addEventListener('keydown', (e) => {
+        if(e.key === "Backspace") handleDelete();
+    });
+
+    function handleDelete() {
+        let lastIdx = -1;
+        for(let i = userGuess.length - 1; i >= 1; i--) { // i >= 1 çünkü 0. harf silinemez [cite: 2026-01-08]
+            if(userGuess[i] !== null) {
+                lastIdx = i;
+                break;
+            }
+        }
+        if(lastIdx !== -1) {
+            userGuess[lastIdx] = null;
+            updateBoxes();
+        }
+    }
 
     function updateBoxes() {
         let boxes = document.getElementsByClassName('letter-box');
-        userGuess.forEach((c, i) => { boxes[i].innerText = c || ""; boxes[i].classList.remove('active-box'); });
-        let n = userGuess.indexOf(null); if(n !== -1) boxes[n].classList.add('active-box');
+        userGuess.forEach((c, i) => {
+            boxes[i].innerText = c || "";
+            boxes[i].classList.remove('active-box');
+        });
+        let n = userGuess.indexOf(null);
+        if(n !== -1) boxes[n].classList.add('active-box');
     }
 
-    function check() { if(userGuess.join('') === words[current % words.length].a) { coins += 4; finish(); } }
-
-    function finish() {
-        isFinished = true; if(isArena) clearInterval(timer);
-        document.getElementById('meaning-box').style.display = "block";
-        Array.from(document.getElementsByClassName('letter-box')).forEach(b => b.classList.add('filled'));
-        document.getElementById('coin-txt').innerText = coins;
+    function check() {
+        if(userGuess.join('') === words[current % words.length].a) {
+            coins += 4;
+            isFinished = true;
+            document.getElementById('meaning-box').style.display = "block";
+            document.getElementById('total-coin-info').innerText = coins;
+            document.getElementById('coin-txt').innerText = coins;
+            Array.from(document.getElementsByClassName('letter-box')).forEach(b => b.classList.add('filled'));
+        }
     }
 
-    function startTimer() {
-        let s = 60; document.getElementById('timer-txt').innerText = s; clearInterval(timer);
-        timer = setInterval(() => { s--; document.getElementById('timer-txt').innerText = s; if(s <= 0) { clearInterval(timer); nextLevel(); } }, 1000);
+    function nextLevel() {
+        current++;
+        initRound();
     }
-
-    function nextLevel() { current++; initRound(); if(isArena) startTimer(); }
 </script>
 </body>
 </html>
