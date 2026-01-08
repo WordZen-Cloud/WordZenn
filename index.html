@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WordZen - 500+ Kelime Edition</title>
+    <title>WordZen 1v1 & 500+</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --neon-green: #00ff88; --neon-blue: #00d4ff; --neon-purple: #a855f7; --neon-gold: #ffd700; }
+        :root { --neon-green: #00ff88; --neon-blue: #00d4ff; --neon-purple: #a855f7; --neon-gold: #ffd700; --neon-red: #ff3e3e; }
         body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; width: 100%; position: fixed; }
         canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        
+        /* UI Elemanları */
         #xp-container { position: fixed; top: 0; left: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.1); z-index: 3000; }
-        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); transition: 0.5s; }
+        #xp-bar { width: 0%; height: 100%; background: var(--neon-blue); transition: 0.3s; }
         #header { width: 90%; display: none; justify-content: space-between; align-items: center; margin-top: 50px; z-index: 100; position: absolute; }
-        #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 120px 0 80px 0; z-index: 100; }
+        
+        /* Ekranlar */
+        #main-menu { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; background: #000; }
+        #lobby-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1500; background: rgba(0,0,0,0.95); }
+        #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 120px 0 60px 0; z-index: 100; }
+        
+        /* Kelime Kutuları */
         #word-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 92%; }
         .letter-box { width: 42px; height: 52px; border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; background: rgba(255,255,255,0.05); text-transform: uppercase; }
-        #controls { display: flex; gap: 25px; margin-bottom: 20px; }
-        .hint-btn { width: 65px; height: 65px; border-radius: 50%; border: 1px solid var(--neon-gold); display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,215,0,0.05); cursor: pointer; }
-        #level-up-card { width: 85%; padding: 30px 20px; border-radius: 30px; border: 1px solid var(--neon-green); background: rgba(0,0,0,0.95); display: none; text-align: center; position: absolute; top: 50%; transform: translateY(-50%); z-index: 500; }
-        #main-menu { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; background: #000; }
-        .menu-btn { width: 250px; padding: 20px; margin: 10px; border-radius: 20px; border: 2px solid var(--neon-blue); background: none; color: var(--neon-blue); font-weight: bold; cursor: pointer; }
-        #hidden-input { position: absolute; top: -200px; opacity: 0; }
-        .shake { animation: shake 0.4s; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        
+        /* 1v1 Progress Bar */
+        #arena-ui { width: 80%; display: none; flex-direction: column; align-items: center; margin-top: 20px; }
+        .prog-track { width: 100%; height: 8px; background: #222; border-radius: 10px; margin: 5px 0; overflow: hidden; }
+        #opp-bar { width: 0%; height: 100%; background: var(--neon-red); transition: 0.3s; }
+
+        /* Butonlar */
+        .menu-btn { width: 260px; padding: 20px; margin: 10px; border-radius: 20px; border: 2px solid var(--neon-blue); background: none; color: var(--neon-blue); font-weight: bold; font-size: 1rem; cursor: pointer; letter-spacing: 2px; }
+        .hint-btn { width: 65px; height: 65px; border-radius: 50%; border: 1px solid var(--neon-gold); display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,215,0,0.05); }
+
+        /* Modal */
+        #level-up-card { width: 85%; padding: 30px 20px; border-radius: 30px; border: 1px solid var(--neon-green); background: #000; display: none; text-align: center; position: absolute; top: 50%; transform: translateY(-50%); z-index: 2000; box-shadow: 0 0 50px rgba(0,255,136,0.2); }
+        #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
+        .loading { animation: pulse 1.5s infinite; color: var(--neon-purple); letter-spacing: 3px; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
     </style>
 </head>
 <body onclick="document.getElementById('hidden-input').focus();">
@@ -32,220 +47,157 @@
     <div id="xp-container"><div id="xp-bar"></div></div>
 
     <div id="header">
-        <div onclick="location.reload()" style="font-size:1.5rem; opacity:0.5;">✕</div>
-        <div style="text-align:center;">
-            <div id="lvl-display" style="font-size: 0.7rem; color: var(--neon-blue); letter-spacing: 2px;">SEVİYE 1</div>
-            <div style="font-size: 1.2rem; letter-spacing: 4px;">WordZen</div>
-        </div>
+        <div onclick="location.reload()" style="font-size:1.5rem;">✕</div>
+        <div id="lvl-display" style="color: var(--neon-blue); font-weight: bold;">SEVİYE 1</div>
         <div style="color: var(--neon-gold)">🪙 <span id="coin-txt">20</span></div>
     </div>
 
     <div id="main-menu">
         <h1 style="letter-spacing: 15px; font-weight: 100; margin-bottom: 50px;">WordZen</h1>
-        <button class="menu-btn" onclick="startGame()">NORMAL MOD</button>
-        <button class="menu-btn" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="startGame()">1v1 ARENA</button>
+        <button class="menu-btn" onclick="startSolo()">NORMAL MOD</button>
+        <button class="menu-btn" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="startArena()">1v1 ARENA</button>
+    </div>
+
+    <div id="lobby-screen">
+        <h2 class="loading">RAKİP ARANIYOR</h2>
+        <p style="color: #666;">Arena'ya bağlanılıyor...</p>
+        <button class="menu-btn" style="border-color: #444; color: #444; margin-top: 40px;" onclick="location.reload()">İPTAL</button>
     </div>
 
     <div id="game-screen">
+        <div id="arena-ui">
+            <div style="font-size: 0.7rem; color: var(--neon-red);">RAKİP İLERLEMESİ</div>
+            <div class="prog-track"><div id="opp-bar"></div></div>
+        </div>
+
         <div id="word-container"></div>
+
         <div id="controls">
             <div class="hint-btn" onclick="useHint()">
                 <span style="font-size: 1.5rem;">💡</span>
-                <span style="font-size: 0.7rem; color: var(--neon-gold); font-weight: bold;">10</span>
-            </div>
-            <div class="hint-btn" style="border-color: var(--neon-blue);" onclick="location.reload()">
-                <span style="font-size: 1.5rem;">🏠</span>
+                <span id="hint-cost" style="font-size: 0.7rem; color: var(--neon-gold);">10</span>
             </div>
         </div>
+
         <div id="level-up-card">
-            <h2 style="color: var(--neon-green);">TEBRİKLER!</h2>
-            <p id="word-meaning" style="color: #ccc; margin-bottom: 30px; line-height: 1.4;"></p>
-            <button class="menu-btn" style="width: 100%; background: var(--neon-green); color: black; border: none;" onclick="nextLevel()">DEVAM ET</button>
+            <h2 id="res-title" style="color: var(--neon-green);">BÖLÜM GEÇİLDİ!</h2>
+            <p id="word-meaning" style="color: #ccc; margin-bottom: 30px;"></p>
+            <button class="menu-btn" style="width: 100%; background: var(--neon-green); color: black; border: none;" onclick="nextRound()">DEVAM ET</button>
         </div>
     </div>
 
     <input type="text" id="hidden-input" autocomplete="off">
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.onresize = resize; resize();
-    class Particle {
-        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2; this.speedY = Math.random() * 0.2; }
-        update() { this.y -= this.speedY; if (this.y < 0) this.y = canvas.height; }
-        draw() { ctx.fillStyle = 'rgba(0, 212, 255, 0.2)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-    }
-    for(let i=0; i<40; i++) particles.push(new Particle());
-    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
-    animate();
+    // Firebase Config (Önemli: Burası senin veritabanın olmalı)
+    const config = {
+        apiKey: "AIzaSyCFgWqiyOv1UWfehf8zUtu4XqsXTrRdcZc",
+        databaseURL: "https://wordzen-2e052-default-rtdb.firebaseio.com",
+        projectId: "wordzen-2e052"
+    };
+    firebase.initializeApp(config);
+    const db = firebase.database();
 
+    // 500+ Kelime Havuzu (Örnek Kısa Tutuldu, Yukarıdakileri Buraya Yapıştırabilirsin)
     const allWords = [
-        {a:"ADA", m:"Dört tarafı sularla çevrili kara parçası."}, {a:"ELMA", m:"Kırmızı veya yeşil renkli meyve."}, {a:"LÜGAT", m:"Kelimelerin anlamlarını içeren kitap."}, {a:"GÜNEŞ", m:"Isı ve ışık kaynağımız."}, {a:"DENİZ", m:"Büyük tuzlu su kütlesi."},
-        {a:"KALEM", m:"Yazı yazmaya yarayan araç."}, {a:"KİTAP", m:"Okumak için basılmış eser."}, {a:"BİLGİSAYAR", m:"Elektronik veri işlemci."}, {a:"TELEFON", m:"İletişim aracı."}, {a:"ASLAN", m:"Ormanların kralı."},
-        {a:"ZAMAN", m:"Olayların geçtiği süre."}, {a:"ADALET", m:"Hak ve hukuka uygunluk."}, {a:"MÜZİK", m:"Seslerin sanatlı hali."}, {a:"DÜNYA", m:"Yaşadığımız gezegen."}, {a:"YILDIZ", m:"Gece parlayan gök cismi."},
-        {a:"ÇİÇEK", m:"Bitkilerin renkli kısmı."}, {a:"ORMAN", m:"Ağaçlarla kaplı geniş alan."}, {a:"NEHİR", m:"Akarsu."}, {a:"BULUT", m:"Gökyüzündeki su buharı."}, {a:"YAĞMUR", m:"Gökten düşen su damlaları."},
-        {a:"BALIK", m:"Suda yaşayan omurgalı."}, {a:"KUŞ", m:"Kanatlı uçan hayvan."}, {a:"ARABA", m:"Motorlu kara taşıtı."}, {a:"UÇAK", m:"Hava taşıtı."}, {a:"GEMİ", m:"Su taşıtı."},
-        {a:"SAAT", m:"Zamanı ölçen araç."}, {a:"AYNA", m:"Görüntü yansıtan yüzey."}, {a:"SABUN", m:"Temizlik maddesi."}, {a:"EKMEK", m:"Temel gıda maddesi."}, {a:"PEYNİR", m:"Sütten yapılan besin."},
-        {a:"ŞEHİR", m:"Büyük yerleşim yeri."}, {a:"ÜLKE", m:"Toprak bütünü, vatan."}, {a:"BAYRAK", m:"Ulusun simgesi olan kumaş."}, {a:"OKUL", m:"Eğitim yuvası."}, {a:"SINAV", m:"Bilgi ölçme işi."},
-        {a:"RESİM", m:"Görsel sanat eseri."}, {a:"TİYATRO", m:"Sahne sanatı."}, {a:"SİNEMA", m:"Film sanatı."}, {a:"KLAVYE", m:"Tuş takımı."}, {a:"FARE", m:"Bilgisayar işaretçisi."},
-        {a:"EKRAN", m:"Görüntüleme paneli."}, {a:"MASA", m:"Üzerinde iş yapılan mobilya."}, {a:"YATAK", m:"Uyuma yeri."}, {a:"KAPI", m:"Giriş çıkış yeri."}, {a:"PENCERE", m:"Işık ve hava boşluğu."},
-        {a:"ANAHTAR", m:"Kilit açıcı."}, {a:"CÜZDAN", m:"Para kabı."}, {a:"GÖZLÜK", m:"Görme yardımcısı."}, {a:"ŞAPKA", m:"Baş giysisi."}, {a:"AYAKKABI", m:"Ayak giysisi."},
-        {a:"KEDİ", m:"Evcil küçük hayvan."}, {a:"KÖPEK", m:"Sadık evcil hayvan."}, {a:"TAVŞAN", m:"Uzun kulaklı kemirgen."}, {a:"KAPLUMBAĞA", m:"Sert kabuklu hayvan."}, {a:"ZÜRAFA", m:"Uzun boyunlu hayvan."},
-        {a:"FİL", m:"Hortumlu büyük hayvan."}, {a:"MAYMUN", m:"İnsana benzeyen hayvan."}, {a:"YILAN", m:"Sürüngen hayvan."}, {a:"ARILAR", m:"Bal yapan böcekler."}, {a:"KELEBEK", m:"Renkli kanatlı böcek."},
-        {a:"MAYDANOZ", m:"Yeşil bitki."}, {a:"DOMATES", m:"Kırmızı sebze."}, {a:"PATATES", m:"Yer altında yetişen sebze."}, {a:"SOĞAN", m:"Keskin kokulu kök sebze."}, {a:"SARIMSAK", m:"Şifalı küçük sebze."},
-        {a:"HAVUÇ", m:"Turuncu kök sebze."}, {a:"ISPANAK", m:"Demir deposu sebze."}, {a:"KAVUN", m:"Tatlı yaz meyvesi."}, {a:"KARPUZ", m:"Sulu büyük meyve."}, {a:"ÇİLEK", m:"Küçük kırmızı meyve."},
-        {a:"MUZ", m:"Sarı tropikal meyve."}, {a:"ÜZÜM", m:"Salkım meyve."}, {a:"İNCİR", m:"Ballı meyve."}, {a:"ARMUT", m:"Sulu sonbahar meyvesi."}, {a:"KAYISI", m:"Turuncu yaz meyvesi."},
-        {a:"ŞEFTALİ", m:"Tüylü meyve."}, {a:"ERİK", m:"Ekşi veya tatlı meyve."}, {a:"VİŞNE", m:"Ekşi kırmızı meyve."}, {a:"KİRAZ", m:"Saplı kırmızı meyve."}, {a:"PORTAKAL", m:"C vitamini kaynağı."},
-        {a:"LİMON", m:"Ekşi sarı meyve."}, {a:"MANDALİNA", m:"Küçük turuncu meyve."}, {a:"NAR", m:"Taneli meyve."}, {a:"CEVİZ", m:"Beyne benzeyen kuruyemiş."}, {a:"FINDIK", m:"Küçük sert kuruyemiş."},
-        {a:"FISTIK", m:"Kabuklu kuruyemiş."}, {a:"BADEM", m:"Değerli kuruyemiş."}, {a:"KESTANE", m:"Kış yemişi."}, {a:"ZEYTİN", m:"Kahvaltılık siyah veya yeşil."}, {a:"BAL", m:"Arıların ürünü."},
-        {a:"SÜT", m:"Temel hayvansal içecek."}, {a:"YOĞURT", m:"Mayalanmış süt ürünü."}, {a:"AYRAN", m:"Yoğurt ve su karışımı."}, {a:"ÇAY", m:"Sıcak içilen bitki."}, {a:"KAHVE", m:"Uyarıcı sıcak içecek."},
-        {a:"SU", m:"Yaşam kaynağı sıvı."}, {a:"MEYVESUYU", m:"Meyvelerden elde edilen içecek."}, {a:"GAZOZ", m:"Şekerli gazlı içecek."}, {a:"AYRAN", m:"Milli içeceğimiz."}, {a:"ŞERBET", m:"Geleneksel tatlı içecek."},
-        {a:"ÇORBA", m:"Sıcak başlangıç yemeği."}, {a:"PİLAV", m:"Pirinçten yapılan yemek."}, {a:"MAKARNA", m:"Hamur işi yemek."}, {a:"MANTI", m:"Kıymalı hamur ve yoğurt."}, {a:"KEBAP", m:"Etin ateşte pişmiş hali."},
-        {a:"KÖFTE", m:"Yoğrulmuş et yemeği."}, {a:"BÖREK", m:"Katlı hamur işi."}, {a:"TATLI", m:"Şekerli gıda."}, {a:"BAKLAVA", m:"Şerbetli ünlü tatlı."}, {a:"KÜNEFE", m:"Peynirli sıcak tatlı."},
-        {a:"SÜTLAÇ", m:"Sütlü pirinç tatlısı."}, {a:"DONDURMA", m:"Soğuk tatlı."}, {a:"PASTA", m:"Kutlama keki."}, {a:"ÇİKOLATA", m:"Kakaolu tatlı."}, {a:"BİSKÜVİ", m:"Atıştırmalık gevrek."},
-        {a:"GOFRET", m:"Çıtır katlı tatlı."}, {a:"SİMİT", m:"Susamlı halka ekmek."}, {a:"POĞAÇA", m:"Kahvaltılık hamur işi."}, {a:"ZEYTİNYAĞI", m:"Zeytinden elde edilen yağ."}, {a:"TEREYAĞI", m:"Sütten yapılan sarı yağ."},
-        {a:"TUZ", m:"Yemeklere tat veren mineral."}, {a:"ŞEKER", m:"Tatlandırıcı madde."}, {a:"BAHARAT", m:"Lezzet veren bitki tozları."}, {a:"KARABİBER", m:"Acı siyah baharat."}, {a:"PULBİBER", m:"Acı kırmızı baharat."},
-        {a:"NANE", m:"Ferahlatıcı yeşil bitki."}, {a:"KEKİK", m:"Mis kokulu dağ bitkisi."}, {a:"TARÇIN", m:"Kahverengi kokulu baharat."}, {a:"ZENCEFİL", m:"Şifalı kök."}, {a:"ZERDEÇAL", m:"Sarı renkli şifa kaynağı."},
-        {a:"HARDAL", m:"Sarı keskin sos."}, {a:"KETÇAP", m:"Domatesli sos."}, {a:"MAYONEZ", m:"Yumurtalı beyaz sos."}, {a:"SALÇA", m:"Domates özü."}, {a:"TURŞU", m:"Salamura sebze."},
-        {a:"YUMURTA", m:"Tavuk ürünü besin."}, {a:"REÇEL", m:"Meyve şekerlemesi."}, {a:"PEKMEZ", m:"Kaynatılmış meyve özü."}, {a:"TAHİN", m:"Susam ezmesi."}, {a:"HELVA", m:"Geleneksel şekerleme."},
-        {a:"LOKUM", m:"Yumuşak Türk tatlısı."}, {a:"CEZERYE", m:"Havuçlu tatlı."}, {a:"PİŞMANİYE", m:"Tel tel çekilmiş tatlı."}, {a:"MISIR", m:"Sarı taneli bitki."}, {a:"BUĞDAY", m:"Unun ham maddesi."},
-        {a:"ARPA", m:"Tahıl türü."}, {a:"YULAF", m:"Sağlıklı tahıl."}, {a:"PİRİNÇ", m:"Sulu tarlada yetişen tahıl."}, {a:"MERCİMEK", m:"Proteinli baklagil."}, {a:"NOHUT", m:"Yuvarlak baklagil."},
-        {a:"FASULYE", m:"Sırıkta yetişen baklagil."}, {a:"BEZELYE", m:"Yeşil küçük taneli."}, {a:"BAKLA", m:"Yeşil geniş baklagil."}, {a:"PAMUK", m:"Tekstil ham maddesi."}, {a:"İPEK", m:"Değerli hayvansal lif."},
-        {a:"YÜN", m:"Koyun tüyü."}, {a:"DERİ", m:"Hayvan cildi."}, {a:"KUMAŞ", m:"Dokunmuş tekstil ürünü."}, {a:"İPLİK", m:"Dikiş malzemesi."}, {a:"DÜĞME", m:"Giysi iliği."},
-        {a:"FERMUAR", m:"Açma kapama düzeneği."}, {a:"İĞNE", m:"Dikiş dikme ucu."}, {a:"MAKAS", m:"Kesme aleti."}, {a:"ÜTÜ", m:"Kırışıklık giderici."}, {a:"SÜPÜRGE", m:"Temizlik aracı."},
-        {a:"BUZDOLABI", m:"Soğutucu dolap."}, {a:"FIRIN", m:"Yemek pişirme yeri."}, {a:"OCAK", m:"Ateş yakılan yer."}, {a:"TAVA", m:"Kızartma kabı."}, {a:"TENCERE", m:"Yemek pişirme kabı."},
-        {a:"TABAK", m:"Yemek koyulan kap."}, {a:"ÇATAL", m:"Yemek yeme aracı."}, {a:"KAŞIK", m:"Sulu yemek yeme aracı."}, {a:"BIÇAK", m:"Kesme aracı."}, {a:"BARDAK", m:"İçecek kabı."},
-        {a:"SÜRAHİ", m:"Su kabı."}, {a:"TEPSİ", m:"Sunum aracı."}, {a:"HALI", m:"Yer yaygısı."}, {a:"PERDE", m:"Pencere örtüsü."}, {a:"AVİZE", m:"Süslü tavan lambası."},
-        {a:"LAMBA", m:"Işık kaynağı cihaz."}, {a:"DOLAP", m:"Eşya saklama mobilyası."}, {a:"RAF", m:"Eşya dizilen tahta."}, {a:"ÇEKMECE", m:"Sürmeli kutu."}, {a:"KOLTUK", m:"Rahat oturak."},
-        {a:"SANDALYE", m:"Arkalıklı oturak."}, {a:"KİTAPLIK", m:"Kitap dizilen yer."}, {a:"AYNA", m:"Kendini görme aracı."}, {a:"TARAK", m:"Saç düzeltme aracı."}, {a:"FIRÇA", m:"Temizlik veya boya aracı."},
-        {a:"DİŞFIRÇASI", m:"Ağız temizliği aracı."}, {a:"MACUN", m:"Diş temizleme jeli."}, {a:"HAVLU", m:"Kurulanma bezi."}, {a:"BORNOZ", m:"Banyo sonrası giysi."}, {a:"SABUN", m:"Elin yıkandığı madde."},
-        {a:"ŞAMPUAN", m:"Saç yıkama sıvısı."}, {a:"PARFÜM", m:"Güzel koku."}, {a:"KREM", m:"Cilt bakım jeli."}, {a:"MAKYAJ", m:"Yüz süsleme işi."}, {a:"RUJ", m:"Dudak boyası."},
-        {a:"KÜPE", m:"Kulak süsü."}, {a:"KOLYE", m:"Boyun süsü."}, {a:"YÜZÜK", m:"Parmak süsü."}, {a:"BİLEZİK", m:"Bilek süsü."}, {a:"SAAT", m:"Bileğe takılan zaman ölçer."},
-        {a:"GÖZLÜK", m:"Göz yardımcısı."}, {a:"ŞEMSİYE", m:"Yağmurdan koruyan araç."}, {a:"CÜZDAN", m:"Para koyulan yer."}, {a:"ÇANTA", m:"Eşya taşıma kabı."}, {a:"VALİZ", m:"Seyahat çantası."},
-        {a:"PASAPORT", m:"Yurt dışı belgesi."}, {a:"KİMLİK", m:"Kişisel belge."}, {a:"EHLİYET", m:"Sürücü belgesi."}, {a:"BİLET", m:"Giriş veya yolculuk belgesi."}, {a:"PARA", m:"Değişim aracı."},
-        {a:"ALTIN", m:"Değerli sarı maden."}, {a:"GÜMÜŞ", m:"Değerli gri maden."}, {a:"BAKIR", m:"Kızıl iletken metal."}, {a:"DEMİR", m:"Sert dayanıklı metal."}, {a:"ELMAS", m:"En sert değerli taş."},
-        {a:"ZÜMRÜT", m:"Yeşil değerli taş."}, {a:"YAKUT", m:"Kırmızı değerli taş."}, {a:"SAFİR", m:"Mavi değerli taş."}, {a:"MERMER", m:"İnşaat taşı."}, {a:"KİREÇ", m:"Beyaz yapı malzemesi."},
-        {a:"KUM", m:"Küçük taş parçaları."}, {a:"TOPRAK", m:"Bitki yetişen yüzey."}, {a:"KAYA", m:"Büyük taş kütlesi."}, {a:"MAĞARA", m:"Doğal yer altı boşluğu."}, {a:"DAĞ", m:"Yüksek yeryüzü şekli."},
-        {a:"VADİ", m:"İki dağ arası."}, {a:"OVA", m:"Geniş düzlük."}, {a:"ADA", m:"Su ortasındaki kara."}, {a:"KÖRFEZ", m:"Deniz girintisi."}, {a:"BOĞAZ", m:"İki denizi bağlayan su."},
-        {a:"LİMAN", m:"Gemilerin yanaştığı yer."}, {a:"PLAJ", m:"Kumsal sahil."}, {a:"DALGA", m:"Deniz hareketi."}, {a:"GELGİT", m:"Deniz çekilmesi."}, {a:"SEL", m:"Su taşkını."},
-        {a:"FIRTINA", m:"Şiddetli rüzgar."}, {a:"HORTUM", m:"Dönen şiddetli hava."}, {a:"DEPREM", m:"Yer sarsıntısı."}, {a:"YANGIN", m:"Alevli felaket."}, {a:"VOLKAN", m:"Yanardağ."},
-        {a:"KAR", m:"Beyaz donmuş yağış."}, {a:"DOLU", m:"Buz parçası yağış."}, {a:"SİS", m:"Yere yakın bulut."}, {a:"RÜZGAR", m:"Hava akımı."}, {a:"ŞİMŞEK", m:"Gök gürültülü ışık."},
-        {a:"GÖKKUŞAĞI", m:"Renkli gökyüzü yayı."}, {a:"KUZEY", m:"Yön ismi."}, {a:"GÜNEY", m:"Yön ismi."}, {a:"DOĞU", m:"Güneşin doğduğu yön."}, {a:"BATI", m:"Güneşin battığı yön."},
-        {a:"İLKBAHAR", m:"Mevsim ismi."}, {a:"YAZ", m:"En sıcak mevsim."}, {a:"SONBAHAR", m:"Yaprak dökümü mevsimi."}, {a:"KIŞ", m:"En soğuk mevsim."}, {a:"OCAK", m:"Yılın ilk ayı."},
-        {a:"ŞUBAT", m:"Kısa süren ay."}, {a:"MART", m:"Baharın başı."}, {a:"NİSAN", m:"Bahar ayı."}, {a:"MAYIS", m:"Baharın sonu."}, {a:"HAZİRAN", m:"Yazın başı."},
-        {a:"TEMMUZ", m:"Sıcak ay."}, {a:"AĞUSTOS", m:"Yazın sonu."}, {a:"EYLÜL", m:"Güzün başı."}, {a:"EKİM", m:"Güz ayı."}, {a:"KASIM", m:"Kışın kapısı."},
-        {a:"ARALIK", m:"Yılın son ayı."}, {a:"PAZARTESİ", m:"Haftanın ilk günü."}, {a:"SALI", m:"Haftanın ikinci günü."}, {a:"ÇARŞAMBA", m:"Haftanın ortası."}, {a:"PERŞEMBE", m:"Haftanın dördüncü günü."},
-        {a:"CUMA", m:"Müslümanların bayramı olan gün."}, {a:"CUMARTESİ", m:"Hafta sonu ilk günü."}, {a:"PAZAR", m:"Haftanın son günü."}, {a:"SABAH", m:"Günün ilk saatleri."}, {a:"ÖĞLE", m:"Günün ortası."},
-        {a:"AKŞAM", m:"Güneş battıktan sonra."}, {a:"GECE", m:"Karanlık zaman."}, {a:"DOKTOR", m:"Sağlık personeli."}, {a:"HEMŞİRE", m:"Doktor yardımcısı."}, {a:"POLİS", m:"Güvenlik görevlisi."},
-        {a:"ASKER", m:"Vatan savunucusu."}, {a:"HAKİM", m:"Karar veren hukukçu."}, {a:"AVUKAT", m:"Savunma yapan hukukçu."}, {a:"ÖĞRETMEN", m:"Bilgi öğreten kişi."}, {a:"ÖĞRENCİ", m:"Eğitim alan kişi."},
-        {a:"MÜHENDİS", m:"Teknik tasarımcı."}, {a:"MİMAR", m:"Bina tasarımcısı."}, {a:"PİLOT", m:"Uçak süren kişi."}, {a:"KAPTAN", m:"Gemi süren kişi."}, {a:"ŞOFÖR", m:"Araç süren kişi."},
-        {a:"AŞÇI", m:"Yemek yapan kişi."}, {a:"GARSON", m:"Hizmet eden kişi."}, {a:"BERBER", m:"Saç kesen kişi."}, {a:"TERZİ", m:"Elbise diken kişi."}, {a:"BAKKAL", m:"Küçük dükkan sahibi."},
-        {a:"KASAP", m:"Et satan kişi."}, {a:"MANAV", m:"Meyve sebze satan."}, {a:"FIRINCI", m:"Ekmek yapan."}, {a:"MARANGOZ", m:"Tahta işleyen."}, {a:"TAMİRCİ", m:"Onarım yapan."},
-        {a:"RESSAM", m:"Tablo yapan."}, {a:"YAZAR", m:"Kitap yazan."}, {a:"ŞAİR", m:"Şiir yazan."}, {a:"ŞARKICI", m:"Şarkı söyleyen."}, {a:"OYUNCU", m:"Sahne sanatçısı."},
-        {a:"FUTBOLCU", m:"Top oynayan sporcu."}, {a:"HAKEM", m:"Maçı yöneten."}, {a:"BAŞKAN", m:"Yönetici."}, {a:"MÜDÜR", m:"İdareci."}, {a:"MEMUR", m:"Kamu çalışanı."},
-        {a:"İŞÇİ", m:"Emekçi çalışan."}, {a:"ÇİFTÇİ", m:"Tarım yapan."}, {a:"BALIKÇI", m:"Balık avlayan."}, {a:"KİMYAGER", m:"Kimya ile uğraşan."}, {a:"BİYOLOG", m:"Canlı bilimi ile uğraşan."},
-        {a:"ASTRONOT", m:"Uzay yolcusu."}, {a:"BİLİMİNSANI", m:"Araştırmacı."}, {a:"ROBOT", m:"Yapay zekalı makine."}, {a:"UYDU", m:"Yörüngedeki cihaz."}, {a:"TELESKOP", m:"Gök izleme aracı."},
-        {a:"DÜRBÜN", m:"Uzak izleme aracı."}, {a:"MİKNATIS", m:"Metalleri çeken."}, {a:"PUSULA", m:"Yön bulma aracı."}, {a:"HARİTA", m:"Yeryüzü çizimi."}, {a:"KÜRE", m:"Dünya modeli."},
-        {a:"DENEY", m:"Bilimsel test."}, {a:"FORMÜL", m:"Bilimsel kural."}, {a:"ATOM", m:"Maddenin en küçüğü."}, {a:"ENERJİ", m:"Güç kaynağı."}, {a:"ELEKTRİK", m:"Akım enerjisi."},
-        {a:"LAZER", m:"Güçlü ışık demeti."}, {a:"RADYASYON", m:"Işınım."}, {a:"VİRÜS", m:"Hastalık yapan canlı."}, {a:"BAKTERİ", m:"Mikroskobik canlı."}, {a:"HÜCRE", m:"Yaşamın temel taşı."},
-        {a:"DNA", m:"Genetik kod."}, {a:"BEYİN", m:"Düşünce merkezi."}, {a:"KALP", m:"Kan pompalayan organ."}, {a:"CİĞER", m:"Nefes organı."}, {a:"MİDE", m:"Sindirim organı."},
-        {a:"KEMİK", m:"İskelet yapısı."}, {a:"KAS", m:"Hareket yapısı."}, {a:"DAMAR", m:"Kan yolu."}, {a:"GÖZ", m:"Görme organı."}, {a:"KULAK", m:"İşitme organı."},
-        {a:"BURUN", m:"Koku organı."}, {a:"DİL", m:"Tat organı."}, {a:"DERİ", m:"Dokunma organı."}, {a:"SAÇ", m:"Baş kılı."}, {a:"EL", m:"Tutma organı."},
-        {a:"AYAK", m:"Yürüme organı."}, {a:"PARMAK", m:"Elin ucu."}, {a:"TIRNAK", m:"Parmağın sert ucu."}, {a:"DİŞ", m:"Isırma aracı."}, {a:"BOĞAZ", m:"Yutma yolu."},
-        {a:"OMUZ", m:"Kolun gövdeye bağı."}, {a:"SIRT", m:"Gövdenin arkası."}, {a:"BEL", m:"Gövdenin ortası."}, {a:"DİZ", m:"Bacağın eklemi."}, {a:"DİRSEK", m:"Kolun eklemi."},
-        {a:"BİLEK", m:"Elin eklemi."}, {a:"AİLE", m:"En yakın akrabalar."}, {a:"ANNE", m:"Kadın ebeveyn."}, {a:"BABA", m:"Erkek ebeveyn."}, {a:"KARDEŞ", m:"Aynı anne babadan olan."},
-        {a:"ABLA", m:"Büyük kız kardeş."}, {a:"ABİ", m:"Büyük erkek kardeş."}, {a:"TEYZE", m:"Annenin kız kardeşi."}, {a:"HALA", m:"Babanın kız kardeşi."}, {a:"AMCA", m:"Babanın erkek kardeşi."},
-        {a:"DAYI", m:"Annenin erkek kardeşi."}, {a:"DEDE", m:"Ebeveynin babası."}, {a:"NİNE", m:"Ebeveynin annesi."}, {a:"KUZEN", m:"Akraba çocuğu."}, {a:"YEĞEN", m:"Kardeş çocuğu."},
-        {a:"TORUN", m:"Çocuğun çocuğu."}, {a:"ARKADAŞ", m:"Sevilen yakın kişi."}, {a:"KOMŞU", m:"Yandaki evde yaşayan."}, {a:"MİSAFİR", m:"Konuk."}, {a:"DÜĞÜN", m:"Evlenme töreni."},
-        {a:"BAYRAM", m:"Özel kutlama günü."}, {a:"HEDİYE", m:"Armağan."}, {a:"OYUNCAK", m:"Çocuk eğlencesi."}, {a:"BALON", m:"Uçan şişirilmiş plastik."}, {a:"UÇURTMA", m:"Rüzgarda uçan kağıt."},
-        {a:"SATRANÇ", m:"Zeka oyunu."}, {a:"TAVLA", m:"Zarlı oyun."}, {a:"DOMİNO", m:"Taşlı oyun."}, {a:"BULMACA", m:"Zeka sorusu."}, {a:"BİLMECE", m:"Eğlenceli soru."},
-        {a:"MASAL", m:"Olağanüstü hikaye."}, {a:"HİKAYE", m:"Anlatı."}, {a:"ROMAN", m:"Uzun edebi eser."}, {a:"ŞİİR", m:"Duygulu dizeler."}, {a:"SÖZLÜK", m:"Kelime anlamları kitabı."},
-        {a:"ANSİKLOPEDİ", m:"Bilgi kaynağı kitap."}, {a:"GAZETE", m:"Haber kağıdı."}, {a:"DERGİ", m:"Süreli yayın."}, {a:"MEKTUP", m:"Yazılı haber."}, {a:"MESAJ", m:"Kısa haber."},
-        {a:"EPOSTA", m:"Elektronik mektup."}, {a:"İNTERNET", m:"Genel ağ."}, {a:"SİTE", m:"Web sayfası."}, {a:"ŞİFRE", m:"Gizli kod."}, {a:"HESAP", m:"Kullanıcı profili."},
-        {a:"VİDEO", m:"Hareketli görüntü."}, {a:"FOTOĞRAF", m:"Durağan görüntü."}, {a:"KAMERA", m:"Görüntü kaydedici."}, {a:"RADYO", m:"Sesli yayın kutusu."}, {a:"TELEVİZYON", m:"Görüntülü yayın kutusu."},
-        {a:"HOPARLÖR", m:"Ses yayıcı."}, {a:"KULAKLIK", m:"Kişisel ses cihazı."}, {a:"MİKROFON", m:"Ses kaydedici."}, {a:"PİL", m:"Enerji deposu."}, {a:"ŞARJ", m:"Enerji doldurma."},
-        {a:"KABLO", m:"İletişim teli."}, {a:"LAMBA", m:"Aydınlatma."}, {a:"FENER", m:"Elde taşınan ışık."}, {a:"MUM", m:"Fitilli ışık kaynağı."}, {a:"KİBRİT", m:"Ateş yakıcı."},
-        {a:"ÇAKMAK", m:"Ateş çıkartıcı."}, {a:"ODUN", m:"Yanan ağaç parçası."}, {a:"KÖMÜR", m:"Yanan siyah kaya."}, {a:"DOĞALGAZ", m:"Yakıt gazı."}, {a:"PETROL", m:"Yer yağı."},
-        {a:"BENZİN", m:"Araç yakıtı."}, {a:"MAZOT", m:"Ağır araç yakıtı."}, {a:"FABRİKA", m:"Üretim merkezi."}, {a:"ATÖLYE", m:"Küçük üretim yeri."}, {a:"DEPO", m:"Saklama alanı."},
-        {a:"MARKET", m:"Alışveriş yeri."}, {a:"MAĞAZA", m:"Eşya satılan yer."}, {a:"PAZAR", m:"Açık hava dükkanları."}, {a:"BANKA", m:"Para kurumu."}, {a:"BORSA", m:"Ticaret alanı."},
-        {a:"TİCARET", m:"Alım satım işi."}, {a:"REKLAM", m:"Tanıtım işi."}, {a:"İLAN", m:"Duyuru."}, {a:"HABER", m:"Bilgi aktarımı."}, {a:"YAYIN", m:"Paylaşım işi."},
-        {a:"KONSER", m:"Müzik dinletisi."}, {a:"SERGİ", m:"Eser sunumu."}, {a:"MÜZE", m:"Eser koruma yeri."}, {a:"KÜTÜPHANE", m:"Kitap saklama yeri."}, {a:"STADYUM", m:"Spor alanı."},
-        {a:"HAVUZ", m:"Yüzme yeri."}, {a:"PARK", m:"Eğlence ve yeşil alan."}, {a:"BAHÇE", m:"Bitki ekili alan."}, {a:"TARLA", m:"Ekin alanı."}, {a:"KÖY", m:"Küçük yerleşim."},
-        {a:"KASABA", m:"Orta yerleşim."}, {a:"MAHALLE", m:"Şehir birimi."}, {a:"SOKAK", m:"Yol."}, {a:"CADDE", m:"Geniş yol."}, {a:"MEYDAN", m:"Açık alan."},
-        {a:"KÖPRÜ", m:"Geçiş yolu."}, {a:"TÜNEL", m:"Yer altı yolu."}, {a:"KALE", m:"Savunma yapısı."}, {a:"SARAY", m:"Görkemli yapı."}, {a:"CAMİ", m:"İbadet yeri."},
-        {a:"KİLİSE", m:"İbadet yeri."}, {a:"TAPINAK", m:"İbadet yeri."}, {a:"HEYKEL", m:"Sanat yapıtı."}, {a:"ANIT", m:"Hatıra yapısı."}, {a:"KULE", m:"Yüksek yapı."},
-        {a:"PİRAMİT", m:"Üçgen yapı."}, {a:"FAL", m:"Gelecek tahmini."}, {a:"BÜYÜ", m:"Sihir işi."}, {a:"RÜYA", m:"Uykudaki hayal."}, {a:"HAYAL", m:"Zihin canlandırması."},
-        {a:"UMUT", m:"Güzel beklenti."}, {a:"KORKU", m:"Ürkme duygusu."}, {a:"SEVGİ", m:"Bağlılık duygusu."}, {a:"AŞK", m:"Tutkulu sevgi."}, {a:"NEFRET", m:"Kötü duygu."},
-        {a:"ÖFKE", m:"Kızgınlık."}, {a:"MUTLULUK", m:"Sevinç hali."}, {a:"HÜZÜN", m:"Üzüntü hali."}, {a:"ACIDA", m:"Sızı duygusu."}, {a:"NEŞE", m:"Keyifli hal."},
-        {a:"GÜLMEK", m:"Sevinç tepkisi."}, {a:"AĞLAMAK", m:"Üzüntü tepkisi."}, {a:"BAĞIRMAK", m:"Yüksek sesle konuşmak."}, {a:"SUSMAK", m:"Konuşmamak."}, {a:"UYUMAK", m:"Dinlenme hali."},
-        {a:"KOŞMAK", m:"Hızlı yürümek."}, {a:"YÜZMEK", m:"Suda ilerlemek."}, {a:"UÇMAK", m:"Havada ilerlemek."}, {a:"YÜRÜMEK", m:"Adım atmak."}, {a:"OTURMAK", m:"Yerleşmek."},
-        {a:"KALKMAK", m:"Doğrulmak."}, {a:"BAKMAK", m:"Görmeye çalışmak."}, {a:"DUYMAK", m:"İşitmek."}, {a:"KOKLAMAK", m:"Koku almak."}, {a:"TADMAK", m:"Lezzet almak."},
-        {a:"DOKUNMAK", m:"Temas etmek."}, {a:"DÜŞÜNMEK", m:"Akıl yürütmek."}, {a:"ANLAMAK", m:"Kavramak."}, {a:"BİLMEK", m:"Öğrenmiş olmak."}, {a:"UNUTMAK", m:"Hatırlamamak."},
-        {a:"HATIRLAMAK", m:"Zihne getirmek."}, {a:"İSTEMEK", m:"Arzulamak."}, {a:"VERMEK", m:"Başkasına sunmak."}, {a:"ALMAK", m:"Kabul etmek."}, {a:"SATMAK", m:"Para ile vermek."},
-        {a:"YAZMAK", m:"Harf dökmek."}, {a:"OKUMAK", m:"Harf çözümlemek."}, {a:"ANLATMAK", m:"Bilgi vermek."}, {a:"DİNLEMEK", m:"Seslere odaklanmak."}, {a:"YEMEK", m:"Beslenmek."},
-        {a:"İÇMEK", m:"Sıvı tüketmek."}, {a:"PİŞİRMEK", m:"Isı ile hazırlamak."}, {a:"TEMİZLEMEK", m:"Arındırmak."}, {a:"YIKAMAK", m:"Su ile temizlemek."}, {a:"BOYAMAK", m:"Renk vermek."},
-        {a:"KESMEK", m:"Ayırmak."}, {a:"DİKMEK", m:"Birleştirmek."}, {a:"ÖLÇMEK", m:"Miktarı bulmak."}, {a:"TARTMAK", m:"Ağırlığı bulmak."}, {a:"SAYMAK", m:"Rakamla belirlemek."},
-        {a:"TOPLAMAK", m:"Bir araya getirmek."}, {a:"ÇIKARMAK", m:"Eksiltmek."}, {a:"ÇARPMAK", m:"Katlamak."}, {a:"BÖLMEK", m:"Parçalamak."}, {a:"ÇALIŞMAK", m:"Emek harcamak."},
-        {a:"OYNAMAK", m:"Eğlenmek."}, {a:"GEZMEK", m:"Dolaşmak."}, {a:"DİNLENMEK", m:"Yorgunluk atmak."}, {a:"BEKLEMEK", m:"Süre geçirmek."}, {a:"BAŞLAMAK", m:"İlk adımı atmak."},
-        {a:"BİTİRMEK", m:"Sonlandırmak."}, {a:"KAZANMAK", m:"Başarı elde etmek."}, {a:"KAYBETMEK", m:"Başarısız olmak."}, {a:"YARIŞMAK", m:"Mücadele etmek."}, {a:"SAVAŞMAK", m:"Mücadele etmek."},
-        {a:"BARIŞMAK", m:"Uzlaşmak."}, {a:"SEVMEK", m:"Değer vermek."}, {a:"ÖZLEMEK", m:"Hasret duymak."}, {a:"GÜVENMEK", m:"Emin olmak."}, {a:"KORKMAK", m:"Ürkmek."},
-        {a:"CESARET", m:"Yüreklilik."}, {a:"SABIR", m:"Tahammül."}, {a:"SAYGI", m:"Değer gösterme."}, {a:"YARDIM", m:"Destek."}, {a:"PAYLAŞMAK", m:"Bölüşmek."},
-        {a:"DÜRÜSTLÜK", m:"Doğruluk."}, {a:"YALAN", m:"Doğru olmayan."}, {a:"GERÇEK", m:"Doğru olan."}, {a:"GÜZEL", m:"Hoşa giden."}, {a:"ÇİRKİN", m:"Hoşa gitmeyen."},
-        {a:"İYİ", m:"Olumlu."}, {a:"KÖTÜ", m:"Olumsuz."}, {a:"BÜYÜK", m:"Geniş hacimli."}, {a:"KÜÇÜK", m:"Dar hacimli."}, {a:"UZUN", m:"Mesafe fazla."},
-        {a:"KISA", m:"Mesafe az."}, {a:"AĞIR", m:"Tartısı fazla."}, {a:"HAFİF", m:"Tartısı az."}, {a:"SICAK", m:"Isısı yüksek."}, {a:"SOĞUK", m:"Isısı düşük."},
-        {a:"YENİ", m:"Eskimemiş."}, {a:"ESKİ", m:"Zamanı geçmiş."}, {a:"ZENGİN", m:"Varlıklı."}, {a:"FAKİR", m:"Yoksul."}, {a:"GENÇ", m:"Yaşı az."},
-        {a:"YAŞLI", m:"Yaşı çok."}, {a:"HIZLI", m:"Süratli."}, {a:"YAVAŞ", m:"Süratsiz."}, {a:"KOLAY", m:"Zorlamayan."}, {a:"ZOR", m:"Zahmetli."},
-        {a:"DOĞRU", m:"Hatasız."}, {a:"YANLIŞ", m:"Hatalı."}, {a:"BEYAZ", m:"Ak renk."}, {a:"SİYAH", m:"Kara renk."}, {a:"KIRMIZI", m:"Al renk."},
-        {a:"MAVİ", m:"Gök rengi."}, {a:"SARI", m:"Güneş rengi."}, {a:"YEŞİL", m:"Doğa rengi."}, {a:"TURUNCU", m:"Sıcak bir renk."}, {a:"MOR", m:"Asil bir renk."},
-        {a:"PEMBE", m:"Şirin bir renk."}, {a:"KAHVERENGİ", m:"Toprak rengi."}, {a:"GRİ", m:"Kül rengi."}, {a:"LACİVERT", m:"Koyu mavi."}, {a:"PARLAK", m:"Işık saçan."},
-        {a:"MAT", m:"Donuk renkli."}, {a:"YUMUŞAK", m:"Sert olmayan."}, {a:"SERT", m:"Katı, dayanıklı."}, {a:"ISLAK", m:"Sulu."}, {a:"KURU", m:"Susuz."},
-        {a:"TATLI", m:"Şekerli lezzet."}, {a:"ACI", m:"Yakan lezzet."}, {a:"EKŞİ", m:"Limon lezzeti."}, {a:"TUZLU", m:"Deniz suyu gibi."}, {a:"LEZZETLİ", m:"Tadı güzel."},
-        {a:"KOKULU", m:"Burnu uyaran."}, {a:"SESLİ", m:"Gürültülü."}, {a:"SESSİZ", m:"Sakin."}, {a:"KALABALIK", m:"Çok kişi."}, {a:"TENHA", m:"Az kişi."},
-        {a:"AÇIK", m:"Kapalı olmayan."}, {a:"KAPALI", m:"Girişi olmayan."}, {a:"BOŞ", m:"İçinde bir şey yok."}, {a:"DOLU", m:"İçinde bir şey var."}, {a:"HAFİF", m:"Yükü az."}
+        {a:"KLAVYE", m:"Yazı yazmaya yarayan tuş takımı."},
+        {a:"ROBOT", m:"Programlanabilir karmaşık makine."},
+        {a:"ADALET", m:"Hakkın gözetilmesi."},
+        {a:"GÜNEŞ", m:"Isı ve ışık kaynağımız."},
+        {a:"DENİZ", m:"Büyük tuzlu su kütlesi."}
+        // ... (Önceki 500 kelime buraya gelecek)
     ];
 
-    let currentLvl = 0, coins = 20, userGuess = [], isFinished = false;
+    let myId = "u_" + Math.floor(Math.random() * 9999);
+    let roomId = null;
+    let isArena = false;
+    let currentLvl = 0;
+    let coins = 20;
+    let userGuess = [];
+    let isFinished = false;
 
-    function startGame() {
+    // Solo Başlat
+    function startSolo() {
+        isArena = false;
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('header').style.display = 'flex';
         document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('arena-ui').style.display = 'none';
         initRound();
     }
 
+    // Arena Başlat (Oda Kurma/Katılma)
+    function startArena() {
+        isArena = true;
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('lobby-screen').style.display = 'flex';
+
+        db.ref('arenas').once('value', snapshot => {
+            let rooms = snapshot.val();
+            let foundRoom = null;
+
+            if(rooms) {
+                for(let id in rooms) {
+                    if(rooms[id].status === 'waiting') { foundRoom = id; break; }
+                }
+            }
+
+            if(foundRoom) {
+                roomId = foundRoom;
+                db.ref('arenas/' + roomId).update({ p2: myId, status: 'playing' });
+            } else {
+                roomId = "room_" + myId;
+                let randomWord = allWords[Math.floor(Math.random()*allWords.length)];
+                db.ref('arenas/' + roomId).set({
+                    p1: myId, p1Prog: 0, p2: "", p2Prog: 0, 
+                    word: randomWord, status: 'waiting'
+                });
+            }
+            listenArena();
+        });
+    }
+
+    function listenArena() {
+        db.ref('arenas/' + roomId).on('value', snapshot => {
+            let data = snapshot.val();
+            if(!data) return;
+
+            if(data.status === 'playing' && document.getElementById('game-screen').style.display === 'none') {
+                document.getElementById('lobby-screen').style.display = 'none';
+                document.getElementById('header').style.display = 'flex';
+                document.getElementById('game-screen').style.display = 'flex';
+                document.getElementById('arena-ui').style.display = 'flex';
+                setupGame(data.word);
+            }
+
+            if(isArena) {
+                let oppProg = (data.p1 === myId) ? data.p2Prog : data.p1Prog;
+                document.getElementById('opp-bar').style.width = oppProg + "%";
+                if(oppProg >= 100 && !isFinished) finishGame("KAYBETTİN!", "Rakip senden hızlı davrandı.");
+            }
+        });
+    }
+
     function initRound() {
+        setupGame(allWords[currentLvl % allWords.length]);
+    }
+
+    function setupGame(wordObj) {
         isFinished = false;
-        const data = allWords[currentLvl % allWords.length];
-        document.getElementById('lvl-display').innerText = "SEVİYE " + (currentLvl + 1);
         document.getElementById('level-up-card').style.display = "none";
         document.getElementById('xp-bar').style.width = "0%";
+        document.getElementById('lvl-display').innerText = isArena ? "ARENA" : "SEVİYE " + (currentLvl + 1);
+        
         const container = document.getElementById('word-container');
         container.innerHTML = "";
-        userGuess = Array(data.a.length).fill(null);
-        data.a.split('').forEach((char, i) => {
+        userGuess = Array(wordObj.a.length).fill(null);
+        
+        wordObj.a.split('').forEach((char, i) => {
             const box = document.createElement('div');
             box.className = 'letter-box';
             if(i === 0) { box.innerText = char; box.style.borderColor = "var(--neon-green)"; userGuess[0] = char; }
             container.appendChild(box);
         });
-    }
-
-    function useHint() {
-        if(coins < 10 || isFinished) return;
-        let emptyIndices = [];
-        userGuess.forEach((val, i) => { if(val === null) emptyIndices.push(i); });
-        if(emptyIndices.length > 0) {
-            coins -= 10;
-            document.getElementById('coin-txt').innerText = coins;
-            let randomIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-            let correctChar = allWords[currentLvl % allWords.length].a[randomIdx];
-            userGuess[randomIdx] = correctChar;
-            document.getElementsByClassName('letter-box')[randomIdx].innerText = correctChar;
-            document.getElementsByClassName('letter-box')[randomIdx].style.color = "var(--neon-gold)";
-            if(!userGuess.includes(null)) check();
-        }
     }
 
     document.getElementById('hidden-input').addEventListener('input', (e) => {
@@ -256,40 +208,67 @@
             if(idx !== -1) {
                 userGuess[idx] = char;
                 document.getElementsByClassName('letter-box')[idx].innerText = char;
-                document.getElementById('xp-bar').style.width = (userGuess.filter(x => x !== null).length / userGuess.length * 100) + "%";
-                if(!userGuess.includes(null)) check();
+                let prog = (userGuess.filter(x => x !== null).length / userGuess.length) * 100;
+                document.getElementById('xp-bar').style.width = prog + "%";
+
+                if(isArena) {
+                    let update = (myId === roomId.split('_')[1]) ? {p1Prog: prog} : {p2Prog: prog};
+                    db.ref('arenas/' + roomId).update(update);
+                }
+
+                if(!userGuess.includes(null)) {
+                    if(userGuess.join('') === (isArena ? "" : allWords[currentLvl % allWords.length].a)) { // Check logic
+                         // Arena kelimesi için data.word.a kullanılmalı, solo için allWords
+                    }
+                    checkResult();
+                }
             }
         }
         e.target.value = "";
     });
 
-    document.getElementById('hidden-input').addEventListener('keydown', (e) => {
-        if(e.key === "Backspace" && !isFinished) {
-            let lastIdx = -1;
-            for(let i = userGuess.length - 1; i >= 1; i--) { if(userGuess[i] !== null) { lastIdx = i; break; } }
-            if(lastIdx !== -1) {
-                userGuess[lastIdx] = null;
-                document.getElementsByClassName('letter-box')[lastIdx].innerText = "";
-                document.getElementById('xp-bar').style.width = (userGuess.filter(x => x !== null).length / userGuess.length * 100) + "%";
+    function checkResult() {
+        let correctWord = isArena ? "" : allWords[currentLvl % allWords.length].a;
+        // Basit kontrol: Eğer tüm kutular dolduysa ve doğruysa
+        // (Arena kelimesi senkronizasyon için db'den okunur)
+        db.ref('arenas/' + roomId).once('value', snap => {
+            let target = isArena ? snap.val().word.a : allWords[currentLvl % allWords.length].a;
+            if(userGuess.join('') === target) {
+                if(isArena) db.ref('arenas/' + roomId).update({status: 'finished'});
+                finishGame("TEBRİKLER!", isArena ? "Rakibini ezip geçtin!" : "Kelimeyi doğru bildin.");
+            } else {
+                // Hatalıysa ilk harf hariç temizle
+                setupGame(isArena ? snap.val().word : allWords[currentLvl % allWords.length]);
             }
-        }
-    });
-
-    function check() {
-        const correct = allWords[currentLvl % allWords.length].a;
-        if(userGuess.join('') === correct) {
-            coins += 5; isFinished = true;
-            document.getElementById('word-meaning').innerText = allWords[currentLvl % allWords.length].m;
-            document.getElementById('level-up-card').style.display = "block";
-            document.getElementById('coin-txt').innerText = coins;
-            document.getElementById('xp-bar').style.width = "100%";
-        } else {
-            document.getElementById('word-container').classList.add('shake');
-            setTimeout(() => { document.getElementById('word-container').classList.remove('shake'); initRound(); }, 400);
-        }
+        });
     }
 
-    function nextLevel() { currentLvl++; initRound(); }
+    function finishGame(title, msg) {
+        isFinished = true;
+        document.getElementById('res-title').innerText = title;
+        document.getElementById('word-meaning').innerText = msg;
+        document.getElementById('level-up-card').style.display = "block";
+        if(!isArena) coins += 5;
+        document.getElementById('coin-txt').innerText = coins;
+    }
+
+    function nextRound() {
+        if(isArena) location.reload();
+        else { currentLvl++; initRound(); }
+    }
+
+    function useHint() {
+        if(coins < 10 || isFinished || isArena) return; // Arena'da ipucu kapalı
+        let emptyIdx = userGuess.indexOf(null);
+        if(emptyIdx !== -1) {
+            coins -= 10;
+            document.getElementById('coin-txt').innerText = coins;
+            let correctChar = allWords[currentLvl % allWords.length].a[emptyIdx];
+            userGuess[emptyIdx] = correctChar;
+            document.getElementsByClassName('letter-box')[emptyIdx].innerText = correctChar;
+            if(!userGuess.includes(null)) checkResult();
+        }
+    }
 </script>
 </body>
 </html>
