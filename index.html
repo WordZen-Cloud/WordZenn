@@ -13,37 +13,61 @@
             height: 100vh; width: 100%; position: fixed;
         }
 
-        /* GİRİŞ ANİMASYONU */
-        #splash { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; justify-content: center; align-items: center; transition: opacity 1s; }
-        .s-logo { font-size: 3rem; font-weight: 200; color: #fff; letter-spacing: 15px; opacity: 0; animation: zenFade 4s forwards; }
-        @keyframes zenFade { 0% { opacity:0; transform:scale(0.8); } 50% { opacity:1; } 100% { opacity:0; transform:scale(1.1); } }
+        /* SPLASH ANİMASYONU */
+        #splash { 
+            position: fixed; inset: 0; background: #000; z-index: 9999; 
+            display: flex; justify-content: center; align-items: center; 
+        }
+        .s-logo { 
+            font-size: 3rem; font-weight: 200; color: #fff; letter-spacing: 15px; 
+            animation: zenFade 4s ease-in-out forwards; 
+        }
+        @keyframes zenFade {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); }
+        }
 
-        /* MENÜLER */
-        #name-screen, #main-menu, #arena-lobby, #arena-game { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        
-        .menu-btn { width: 260px; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; text-align: center; border: 2px solid transparent; background: rgba(255,255,255,0.03); color: white; }
+        /* TÜM EKRANLAR BAŞTA GİZLİ */
+        #name-screen, #main-menu, #arena-lobby, #game-screen { 
+            position: fixed; inset: 0; background: #000; z-index: 1000; 
+            display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; 
+        }
+
+        .menu-btn { 
+            width: 260px; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; 
+            text-align: center; border: 2px solid transparent; background: rgba(255,255,255,0.03); color: white; 
+            transition: 0.3s;
+        }
         #btn-solo { border-color: var(--neon-green); color: var(--neon-green); }
         #btn-arena { border-color: var(--neon-blue); color: var(--neon-blue); }
 
-        /* ARENA ÖZELLİKLERİ */
-        .score-board { display: flex; gap: 40px; font-size: 1.2rem; margin-bottom: 20px; color: var(--neon-gold); }
-        #timer-neon { font-size: 2rem; color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); margin-bottom: 20px; }
+        /* ARENA TASARIMI */
+        .score-board { display: flex; gap: 40px; font-size: 1.1rem; color: var(--neon-gold); margin-bottom: 20px; }
+        #timer-neon { font-size: 2.5rem; color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
         
-        .letter-box { width: 38px; height: 52px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; transition: 0.3s; }
+        .letter-box { 
+            width: 35px; height: 50px; border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+            font-size: 1.5rem; font-weight: bold; 
+        }
         .active-box { border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-        .correct-neon { border-color: var(--neon-green) !important; color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
-        
-        #offline-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+
+        #offline-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; 
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+        }
     </style>
 </head>
-<body onclick="focusInput()">
+<body>
 
 <div id="splash"><div class="s-logo">WordZen</div></div>
 
-<div id="name-screen" style="display:flex;">
-    <h2 style="color:var(--neon-blue)">İSMİNİ YAZ</h2>
-    <input type="text" id="user-name-input" placeholder="Oyuncu Adı" maxlength="12" style="background:transparent; border:none; border-bottom:2px solid var(--neon-blue); color:white; font-size:1.5rem; text-align:center; outline:none;">
-    <button class="menu-btn" style="border-color:var(--neon-green); margin-top:20px;" onclick="saveName()">BAŞLA</button>
+<div id="name-screen">
+    <h2 style="color:var(--neon-blue); letter-spacing: 5px;">İSMİNİ SEÇ</h2>
+    <input type="text" id="user-name-input" placeholder="Kullanıcı Adı" maxlength="12" 
+           style="background:transparent; border:none; border-bottom:2px solid var(--neon-blue); color:white; font-size:1.5rem; text-align:center; outline:none; width: 80%;">
+    <button class="menu-btn" style="border-color:var(--neon-green); margin-top:20px;" onclick="saveName()">OYUNA GİR</button>
 </div>
 
 <div id="main-menu">
@@ -53,123 +77,122 @@
 </div>
 
 <div id="arena-lobby">
-    <div style="border:1px solid var(--neon-blue); padding:30px; border-radius:20px; text-align:center; width:85%;">
-        <h2 id="lobby-title" style="color:var(--neon-blue)">ARENA LOBİSİ</h2>
-        <div id="room-controls">
+    <div style="border:1px solid var(--neon-blue); padding:30px; border-radius:20px; text-align:center; width:80%;">
+        <h2 style="color:var(--neon-blue)">ARENA LOBİSİ</h2>
+        <div id="lobby-controls">
             <button class="menu-btn" style="border-color:var(--neon-gold); margin-bottom:10px;" onclick="createRoom()">ODA KUR</button>
             <p>veya</p>
-            <input type="number" id="join-input" placeholder="ODA NO" style="background:transparent; border:none; border-bottom:2px solid #fff; color:#fff; font-size:1.5rem; width:120px; text-align:center; margin-bottom:20px;">
-            <button class="menu-btn" style="border-color:var(--neon-blue);" onclick="joinRoom()">ODAYA GİR</button>
+            <input type="number" id="room-id-input" placeholder="ODA KODU" style="background:transparent; border:none; border-bottom:1px solid #fff; color:#fff; font-size:1.5rem; width:120px; text-align:center; margin-bottom:20px;">
+            <button class="menu-btn" style="border-color:var(--neon-blue);" onclick="joinRoom()">ODAYA KATIL</button>
         </div>
-        <div id="room-info" style="display:none;">
-            <p>ODA KODU: <span id="display-code" style="font-size:2rem; color:white;">----</span></p>
-            <p id="player-count">Oyuncu: 1/2</p>
-            <button class="menu-btn" style="background:var(--neon-red); border:none;" onclick="startMatch()">SAVAŞ!</button>
+        <div id="room-active" style="display:none;">
+            <p style="font-size:1rem;">ODA KODUNUZ:</p>
+            <h1 id="code-display" style="font-size:3rem; margin:10px 0;">----</h1>
+            <p id="wait-msg" style="color:var(--neon-green);">Rakip bekleniyor... (1/2)</p>
+            <button class="menu-btn" style="background:var(--neon-red); border:none; margin-top:20px;" onclick="startMatch()">SAVAŞI BAŞLAT!</button>
         </div>
-        <button onclick="closeLobby()" style="margin-top:20px; background:none; border:none; color:#666;">ODAYI KAPAT / ÇIK</button>
+        <button onclick="exitLobby()" style="margin-top:30px; background:none; border:none; color:#555; text-decoration:underline;">ODAYI KAPAT VE ÇIK</button>
     </div>
 </div>
 
-<div id="arena-game">
-    <div class="score-board">
-        <div><span id="p1-name">SEN</span>: <span id="p1-score">0</span></div>
-        <div><span id="p2-name">RAKİP</span>: <span id="p2-score">0</span></div>
+<div id="game-screen">
+    <div id="arena-header" style="display:none; flex-direction:column; align-items:center;">
+        <div class="score-board">
+            <div><span id="p1-label">SEN</span>: <span id="p1-score">0</span></div>
+            <div><span id="p2-label">RAKİP</span>: <span id="p2-score">0</span></div>
+        </div>
+        <div id="timer-neon">60</div>
     </div>
-    <div id="timer-neon">60</div>
-    <div id="word-container" style="display:flex; gap:8px;"></div>
-    <p id="round-info" style="margin-top:20px; color:var(--neon-blue);">SORU: 1/10</p>
+    <div id="solo-header" style="color:var(--neon-blue); letter-spacing:5px; margin-bottom:20px;">SOLO MOD</div>
+    
+    <div id="word-container" style="display:flex; gap:8px; margin-bottom:30px;"></div>
+    <div id="round-txt" style="color:#666; font-size:0.8rem;">SORU: 1/10</div>
 </div>
 
 <div id="offline-overlay">
     <div style="font-size:4rem;">📶<span style="color:var(--neon-red); font-weight:bold;">!</span></div>
     <h2 style="color:var(--neon-red)">BAĞLANTINIZ KESİLDİ</h2>
+    <p>İnternet olmadan Arena oynanamaz.</p>
 </div>
 
-<input type="text" id="hidden-input" style="position:absolute; opacity:0; pointer-events:none;" autocomplete="off">
-
 <script>
-    let userName = "";
+    let userName = localStorage.getItem('wz_name') || "";
+    let coins = parseInt(localStorage.getItem('wz_coins')) || 0;
     let roomCode = null;
-    let arenaScores = { p1: 0, p2: 0 };
-    let arenaRound = 1;
-    let timerInterval;
-    
-    // 10 ARENA SORUSU [cite: 2026-01-08]
-    const arenaWords = [
-        {a:"KLAVYE", m:"Yazı yazmaya yarayan tuş takımı."},
-        {a:"SUNUCU", m:"Verileri dağıtan ana bilgisayar."},
-        {a:"YAZILIM", m:"Bilgisayar programlarının genel adı."},
-        {a:"EKRAN", m:"Görüntüyü yansıtan yüzey."},
-        {a:"BAĞLANTI", m:"İki nokta arasındaki iletişim yolu."},
-        {a:"REKABET", m:"Yarışma hali, çekişme."},
-        {a:"ZAFER", m:"Yarış sonunda kazanılan başarı."},
-        {a:"PUAN", m:"Başarı karşılığı verilen değer."},
-        {a:"JETON", m:"Oyun içi para birimi."},
-        {a:"ARENA", m:"Kapışmaların yaşandığı meydan."}
-    ];
+
+    // AÇILIŞ AKIŞI
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('splash').style.display = 'none';
+            if(!userName) {
+                document.getElementById('name-screen').style.display = 'flex';
+            } else {
+                showMainMenu();
+            }
+        }, 4000);
+    };
 
     function saveName() {
-        const val = document.getElementById('user-name-input').value;
-        if(val.length > 1) {
-            userName = val.toUpperCase();
+        const input = document.getElementById('user-name-input').value;
+        if(input.length >= 2) {
+            userName = input.toUpperCase();
+            localStorage.setItem('wz_name', userName);
             document.getElementById('name-screen').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
-            document.getElementById('p1-name').innerText = userName;
+            showMainMenu();
         }
+    }
+
+    function showMainMenu() {
+        document.getElementById('main-menu').style.display = 'flex';
+        document.getElementById('p1-label').innerText = userName;
     }
 
     function openArena() {
         if(!navigator.onLine) { document.getElementById('offline-overlay').style.display='flex'; return; }
+        document.getElementById('main-menu').style.display = 'none';
         document.getElementById('arena-lobby').style.display = 'flex';
     }
 
-    function closeLobby() {
-        roomCode = null;
-        document.getElementById('room-info').style.display = 'none';
-        document.getElementById('room-controls').style.display = 'block';
-        document.getElementById('arena-lobby').style.display = 'none';
+    function createRoom() {
+        roomCode = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('code-display').innerText = roomCode;
+        document.getElementById('lobby-controls').style.display = 'none';
+        document.getElementById('room-active').style.display = 'block';
     }
 
-    function createRoom() {
-        roomCode = Math.floor(1000 + Math.random() * 9000); // [cite: 2026-01-08]
-        document.getElementById('display-code').innerText = roomCode;
-        document.getElementById('room-controls').style.display = 'none';
-        document.getElementById('room-info').style.display = 'block';
+    function exitLobby() {
+        roomCode = null;
+        document.getElementById('room-active').style.display = 'none';
+        document.getElementById('lobby-controls').style.display = 'block';
+        document.getElementById('arena-lobby').style.display = 'none';
+        showMainMenu();
     }
 
     function startMatch() {
         document.getElementById('arena-lobby').style.display = 'none';
-        document.getElementById('arena-game').style.display = 'flex';
-        arenaRound = 1; arenaScores = {p1:0, p2:0};
-        loadArenaWord();
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('arena-header').style.display = 'flex';
+        document.getElementById('solo-header').style.display = 'none';
+        // 10 soru mantığı ve timer burada başlar...
     }
 
-    function loadArenaWord() {
-        clearInterval(timerInterval);
-        if(arenaRound > 10) { endArena(); return; } // [cite: 2026-01-08]
-        
-        document.getElementById('round-info').innerText = "SORU: " + arenaRound + "/10";
-        let timeLeft = 60; // [cite: 2026-01-08]
-        document.getElementById('timer-neon').innerText = timeLeft;
-        
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer-neon').innerText = timeLeft;
-            if(timeLeft <= 0) { arenaRound++; loadArenaWord(); }
-        }, 1000);
-
-        // Harf kutularını oluşturma ve kelime mantığı Solo mod ile aynı entegre edilir [cite: 2026-01-08]
+    function startSolo() {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('arena-header').style.display = 'none';
+        document.getElementById('solo-header').style.display = 'block';
+        // Solo oyun başlatma...
     }
 
-    function endArena() {
-        clearInterval(timerInterval);
-        let winnerText = arenaScores.p1 > arenaScores.p2 ? "KAZANDIN! +10 JETON" : "BERABERE! +5 JETON"; // [cite: 2026-01-08]
-        alert("ARENA BİTTİ: " + winnerText);
-        location.reload();
-    }
-
-    window.addEventListener('offline', () => { document.getElementById('offline-overlay').style.display = 'flex'; });
+    // İNTERNET KONTROLÜ
+    window.addEventListener('offline', () => { 
+        if(document.getElementById('arena-lobby').style.display === 'flex' || 
+           document.getElementById('arena-header').style.display === 'flex') {
+            document.getElementById('offline-overlay').style.display = 'flex'; 
+        }
+    });
     window.addEventListener('online', () => { document.getElementById('offline-overlay').style.display = 'none'; });
 </script>
+
 </body>
 </html>
