@@ -4,36 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WordZen</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --neon-green: #00ff88; --neon-blue: #00d4ff; --neon-purple: #a855f7; --neon-gold: #ffd700; --neon-red: #ff3e3e; }
         body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; width: 100%; position: fixed; }
 
         #splash { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .s-logo { font-size: 3rem; font-weight: 200; color: #fff; letter-spacing: 15px; animation: zenFade 3s forwards; }
+        .s-logo { font-size: 3.5rem; font-weight: 200; color: #fff; letter-spacing: 15px; animation: zenFade 3s forwards; }
         @keyframes zenFade { 0% { opacity: 0; transform: scale(0.8); } 50% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1); } }
 
-        #header { width: 92%; display: none; justify-content: space-between; align-items: center; margin-top: 25px; z-index: 10; position: absolute; top: 0; }
+        #header { width: 92%; display: none; justify-content: space-between; align-items: center; margin-top: 25px; z-index: 100; position: absolute; top: 0; }
         #coin-area { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: bold; color: var(--neon-gold); }
+        .exit-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.05); }
 
-        #main-menu, #arena-lobby, #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; background: #000; }
-        .menu-btn { width: 260px; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; text-align: center; border: 2px solid var(--neon-blue); color: var(--neon-blue); background: rgba(0, 212, 255, 0.05); margin-bottom: 12px; transition: 0.3s; }
+        #main-menu { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; background: radial-gradient(circle at center, #111 0%, #000 100%); }
+        .menu-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); padding: 40px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 20px; }
+        .mode-btn { width: 280px; padding: 20px; border-radius: 20px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1.1rem; letter-spacing: 2px; transition: 0.3s; }
+        .normal-mode { border: 2px solid var(--neon-blue); color: var(--neon-blue); }
+        .arena-mode { border: 2px solid var(--neon-purple); color: var(--neon-purple); }
+        
+        #arena-lobby { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#000; z-index:20; }
+        #room-ready { text-align:center; display:none; }
+        .start-locked { background: #222 !important; color: #555 !important; cursor: not-allowed !important; border: none !important; }
 
-        #game-content { transform: translateY(-20px); display: flex; flex-direction: column; align-items: center; width: 100%; }
-        #level-display { background: rgba(255,255,255,0.04); padding: 12px 40px; border-radius: 20px; text-align: center; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
-        #word-container { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
-        .letter-box { width: 44px; height: 56px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; background: rgba(255,255,255,0.02); transition: 0.2s; }
+        #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        #word-container { display: flex; gap: 10px; margin-bottom: 30px; }
+        .letter-box { width: 48px; height: 60px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; background: rgba(255,255,255,0.02); }
         .filled { border-color: var(--neon-green) !important; color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
         .active-box { border: 2px solid var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
 
-        #controls-right { position: fixed; top: 25px; right: 15px; display: none; flex-direction: column; gap: 10px; align-items: center; z-index: 100; }
-        .help-btn { width: 65px; padding: 8px 2px; border-radius: 12px; border: 1px solid var(--neon-gold); background: rgba(0,0,0,0.6); cursor: pointer; text-align: center; }
-        .help-btn span { display: block; font-size: 0.5rem; color: var(--neon-gold); font-weight: bold; margin-top: 3px; }
-
-        #meaning-box { width: 85%; padding: 15px; border-radius: 15px; border: 1px solid var(--neon-purple); background: rgba(168, 85, 247, 0.08); display: none; text-align: center; margin-top: 15px; }
-        #arena-stats { display: none; width: 80%; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-
-        #next-btn { margin-top: 20px; padding: 15px 50px; border-radius: 30px; background: var(--neon-green); border: none; display: none; font-weight: bold; color: #000; }
-        #footer { position: fixed; bottom: 20px; font-size: 0.6rem; color: #333; letter-spacing: 2px; }
+        #controls-right { position: fixed; top: 25px; right: 15px; display: none; flex-direction: column; gap: 12px; z-index: 100; }
+        .help-btn { width: 70px; padding: 10px 5px; border-radius: 15px; border: 1px solid var(--neon-gold); background: rgba(0,0,0,0.8); text-align: center; cursor: pointer; }
+        
+        #meaning-box { width: 80%; padding: 20px; border-radius: 15px; border: 1px solid var(--neon-purple); background: rgba(168,85,247,0.05); display: none; text-align: center; }
+        #footer { position: fixed; bottom: 20px; font-size: 0.6rem; color: #222; letter-spacing: 3px; }
         #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -42,58 +47,55 @@
     <div id="splash"><div class="s-logo">WordZen</div></div>
 
     <div id="header">
-        <div id="coin-area">🪙 <span id="coin-txt">0</span></div>
-        <div style="font-size:1.6rem; letter-spacing:8px; color:var(--neon-blue); opacity:0.3;">WordZen</div>
+        <div class="exit-btn" onclick="location.reload()">✕</div>
+        <div id="coin-area">🪙 <span id="coin-txt">16</span></div>
         <div style="width:40px;"></div>
     </div>
 
     <div id="controls-right">
-        <div class="help-btn" onclick="useHint()">💡<span>12 JETON</span></div>
-        <div class="help-btn" style="border-color:var(--neon-blue);" onclick="skipLevel()">≫<span style="color:var(--neon-blue)">25 JETON</span></div>
+        <div class="help-btn" onclick="useHint()">💡<span>İPUCU</span></div>
+        <div class="help-btn" style="border-color:var(--neon-blue);" onclick="skipLevel()">≫<span style="color:var(--neon-blue)">ATLA</span></div>
     </div>
 
     <div id="main-menu">
-        <div style="font-size:3rem; color:var(--neon-blue); margin-bottom:50px; letter-spacing:15px; opacity:0.6;">WordZen</div>
-        <div class="menu-btn" onclick="startNormal()">NORMAL MOD</div>
-        <div class="menu-btn" style="border-color:var(--neon-purple); color:var(--neon-purple);" onclick="openLobby()">1v1 ARENA</div>
+        <div style="font-size:3.5rem; color:white; margin-bottom:40px; letter-spacing:15px; font-weight:100;">WordZen</div>
+        <div class="menu-card">
+            <div class="mode-btn normal-mode" onclick="startNormal()">NORMAL MOD</div>
+            <div class="mode-btn arena-mode" onclick="openLobby()">1v1 ARENA</div>
+        </div>
     </div>
 
     <div id="arena-lobby">
-        <h2 style="color:var(--neon-blue)">ARENA</h2>
-        <div id="lobby-ui">
-            <div class="menu-btn" onclick="createRoom()">ODA KUR</div>
-            <p>veya</p>
-            <input type="number" id="room-input" placeholder="ODA KODU" style="background:transparent; border:none; border-bottom:2px solid #fff; color:#fff; font-size:1.5rem; width:150px; text-align:center; margin-bottom:15px; outline:none;">
-            <div class="menu-btn" onclick="joinRoom()">ODAYA KATIL</div>
+        <h2 style="color:var(--neon-purple); letter-spacing:5px;">ARENA LOBİSİ</h2>
+        <div id="lobby-ui" style="display:flex; flex-direction:column; align-items:center; gap:20px;">
+            <div class="mode-btn arena-mode" onclick="createRoom()">ODA KUR</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <input type="number" id="room-input" placeholder="KOD" style="background:transparent; border:none; border-bottom:2px solid #555; color:#fff; font-size:1.5rem; width:100px; text-align:center; outline:none;">
+                <div class="mode-btn arena-mode" style="width:120px; padding:10px;" onclick="joinRoom()">KATIL</div>
+            </div>
+            <p onclick="location.reload()" style="color:var(--neon-red); cursor:pointer;">Geri Dön</p>
         </div>
-        <div id="room-ready" style="display:none; text-align:center;">
-            <div style="font-size:3rem; color:var(--neon-gold);" id="display-code">----</div>
-            <p style="color:var(--neon-green)">OYUNCU: 2/2</p>
-            <div class="menu-btn" style="background:var(--neon-green); color:#000; border:none;" onclick="startArenaMatch()">BAŞLAT</div>
+        
+        <div id="room-ready">
+            <div style="font-size:0.8rem; color:#666;">ODA KODU</div>
+            <div style="font-size:4rem; color:var(--neon-gold); margin-bottom:10px;" id="display-code">----</div>
+            <p id="player-count" style="color:#888;">Oyuncu Bekleniyor... (1/2)</p>
+            <div id="arena-start-btn" class="mode-btn start-locked" onclick="startArenaMatch()">BAŞLAT</div>
+            <p onclick="location.reload()" style="color:var(--neon-red); cursor:pointer; margin-top:20px;">Odayı Kapat</p>
         </div>
-        <p onclick="location.reload()" style="color:#444; cursor:pointer; margin-top:20px;">Geri Dön</p>
     </div>
 
     <div id="game-screen">
-        <div id="timer-txt" style="font-size:2rem; color:var(--neon-red); display:none; margin-bottom:15px;">60</div>
+        <div id="timer-txt" style="font-size:2.5rem; color:var(--neon-red); display:none; margin-bottom:20px; font-weight:bold;">60</div>
         <div id="game-content">
-            <div id="level-display">
-                <div id="lvl-txt" style="font-size:0.7rem; color:#666;">BÖLÜM 1</div>
-                <div id="diff-txt" style="color:var(--neon-green); font-weight:bold; font-size:1.1rem;">KOLAY</div>
+            <div id="level-display" style="background:rgba(255,255,255,0.03); padding:10px 30px; border-radius:15px; margin-bottom:30px; text-align:center;">
+                <div id="lvl-txt" style="font-size:0.6rem; color:#555;">BÖLÜM 1</div>
+                <div id="diff-txt" style="color:var(--neon-green); font-weight:bold;">KOLAY</div>
             </div>
             <div id="word-container"></div>
             <div id="meaning-box">
-                <div style="color:var(--neon-purple); font-size:0.7rem; font-weight:bold;">ANLAMI</div>
-                <div id="m-text" style="font-size:0.85rem;"></div>
-            </div>
-            <button id="next-btn" onclick="nextLevel()">SONRAKİ (+4 🪙)</button>
-            
-            <div id="arena-stats">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="text-align:center;"><div style="color:var(--neon-blue); font-size:0.6rem;">SENSİN</div><div id="p1-s" style="font-size:1.2rem;">0</div></div>
-                    <div style="color:#333;">VS</div>
-                    <div style="text-align:center;"><div style="color:var(--neon-red); font-size:0.6rem;">RAKİP</div><div id="p2-s" style="font-size:1.2rem;">0</div></div>
-                </div>
+                <div id="m-text" style="color:#ccc; font-size:0.9rem;"></div>
+                <button id="next-btn" onclick="nextLevel()" style="margin-top:20px; padding:12px 40px; border-radius:25px; background:var(--neon-green); border:none; font-weight:bold; color:#000;">SONRAKİ (+4 🪙)</button>
             </div>
         </div>
     </div>
@@ -102,68 +104,72 @@
     <input type="text" id="hidden-input" autocomplete="off">
 
 <script>
-    const words = [{a:"ADA", m:"Sularla çevrili kara parçası.", d:"KOLAY"}, {a:"BARDAK", m:"İçecek kabı.", d:"KOLAY"}, {a:"LÜGAT", m:"Eski dilde sözlük.", d:"ORTA"}];
-    let current = 0, coins = 16, userGuess = [], isArena = false, timer, isFinished = false;
+    // FIREBASE ENTEGRASYONU [cite: 2026-01-08]
+    const firebaseConfig = {
+        apiKey: "AIzaSyCFgWqiyOv1UWfehf8zUtu4XqsXTrRdcZc",
+        authDomain: "wordzen-2e052.firebaseapp.com",
+        databaseURL: "https://wordzen-2e052-default-rtdb.firebaseio.com",
+        projectId: "wordzen-2e052",
+        appId: "1:309225718128:web:7492c68f23f859424f114f" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const words = [{a:"ADA", m:"Sularla çevrili kara parçası."}, {a:"BARDAK", m:"İçecek kabı."}, {a:"LÜGAT", m:"Sözlük."}];
+    let current = 0, coins = 16, userGuess = [], isArena = false, timer, isFinished = false, roomCode = null;
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; document.getElementById('main-menu').style.display='flex'; }, 3000); };
 
-    function startNormal() {
-        isArena = false;
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('header').style.display = 'flex';
-        document.getElementById('game-screen').style.display = 'flex';
-        document.getElementById('controls-right').style.display = 'flex';
-        initRound();
+    function createRoom() {
+        roomCode = Math.floor(1000+Math.random()*8999);
+        database.ref('rooms/' + roomCode).set({ status: "waiting", p1: "ready", p2: "empty" });
+        document.getElementById('lobby-ui').style.display='none';
+        document.getElementById('room-ready').style.display='block';
+        document.getElementById('display-code').innerText = roomCode;
+
+        database.ref('rooms/' + roomCode + '/p2').on('value', (snap) => {
+            if(snap.val() === "ready") {
+                document.getElementById('player-count').innerText = "Oyuncu: 2/2";
+                document.getElementById('player-count').style.color = "var(--neon-green)";
+                document.getElementById('arena-start-btn').classList.remove('start-locked');
+            }
+        });
+        database.ref('rooms/' + roomCode + '/status').on('value', (snap) => { if(snap.val() === "playing") startArenaMatch(); });
     }
 
-    function openLobby() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('arena-lobby').style.display = 'flex'; }
-    function createRoom() { let c = Math.floor(1000+Math.random()*8999); document.getElementById('lobby-ui').style.display='none'; document.getElementById('room-ready').style.display='block'; document.getElementById('display-code').innerText=c; }
-    function joinRoom() { if(document.getElementById('room-input').value.length === 4) startArenaMatch(); }
+    function joinRoom() {
+        roomCode = document.getElementById('room-input').value;
+        database.ref('rooms/' + roomCode).once('value', (snap) => {
+            if(snap.exists()) {
+                database.ref('rooms/' + roomCode).update({ p2: "ready", status: "playing" });
+                startArenaMatch();
+            } else { alert("Oda bulunamadı!"); }
+        });
+    }
+
+    function startNormal() {
+        isArena = false; document.getElementById('main-menu').style.display='none'; document.getElementById('header').style.display='flex';
+        document.getElementById('game-screen').style.display='flex'; document.getElementById('controls-right').style.display='flex'; initRound();
+    }
 
     function startArenaMatch() {
-        isArena = true;
-        document.getElementById('arena-lobby').style.display = 'none';
-        document.getElementById('header').style.display = 'flex';
-        document.getElementById('game-screen').style.display = 'flex';
-        document.getElementById('timer-txt').style.display = 'block';
-        document.getElementById('arena-stats').style.display = 'block';
-        document.getElementById('controls-right').style.display = 'none';
-        startTimer();
-        initRound();
+        isArena = true; document.getElementById('arena-lobby').style.display='none'; document.getElementById('header').style.display='flex';
+        document.getElementById('game-screen').style.display='flex'; document.getElementById('timer-txt').style.display='block'; startTimer(); initRound();
     }
 
     function initRound() {
-        isFinished = false;
-        const data = words[current % words.length];
+        isFinished = false; const data = words[current % words.length];
         document.getElementById('lvl-txt').innerText = "BÖLÜM " + (current + 1);
-        document.getElementById('diff-txt').innerText = data.d;
-        document.getElementById('m-text').innerText = data.m;
-        document.getElementById('meaning-box').style.display = "none";
-        document.getElementById('next-btn').style.display = "none";
-        document.getElementById('coin-txt').innerText = coins;
-        
-        const container = document.getElementById('word-container');
+        document.getElementById('m-text').innerText = data.m; document.getElementById('meaning-box').style.display = "none";
+        document.getElementById('coin-txt').innerText = coins; const container = document.getElementById('word-container');
         container.innerHTML = ""; userGuess = [];
-        let hintIdx = (data.a.length === 3) ? 0 : -1;
-
         data.a.split('').forEach((char, i) => {
-            const box = document.createElement('div');
-            box.className = 'letter-box';
-            if(i === hintIdx) { box.innerText = char; box.classList.add('filled'); userGuess[i] = char; }
+            const box = document.createElement('div'); box.className = 'letter-box';
+            if(i === 0) { box.innerText = char; box.classList.add('filled'); userGuess[0] = char; }
             else { userGuess[i] = null; if(userGuess.indexOf(null) === i) box.classList.add('active-box'); }
             container.appendChild(box);
         });
     }
-
-    document.addEventListener('keydown', (e) => {
-        if(isFinished) return;
-        if(e.key === 'Backspace') {
-            let prot = (words[current % words.length].a.length === 3) ? 0 : -1;
-            let last = -1;
-            for(let i=userGuess.length-1; i>=0; i--) { if(userGuess[i] && i !== prot) { last = i; break; } }
-            if(last !== -1) { userGuess[last] = null; updateBoxes(); }
-        }
-    });
 
     document.getElementById('hidden-input').oninput = (e) => {
         if(isFinished) return;
@@ -186,20 +192,8 @@
     function finish() {
         isFinished = true; if(isArena) clearInterval(timer);
         document.getElementById('meaning-box').style.display = "block";
-        document.getElementById('next-btn').style.display = "block";
         Array.from(document.getElementsByClassName('letter-box')).forEach(b => b.classList.add('filled'));
         document.getElementById('coin-txt').innerText = coins;
-    }
-
-    function useHint() {
-        if(coins >= 12 && !isFinished) {
-            let n = userGuess.indexOf(null);
-            if(n !== -1) { coins -= 12; userGuess[n] = words[current % words.length].a[n]; updateBoxes(); if(!userGuess.includes(null)) check(); }
-        }
-    }
-
-    function skipLevel() {
-        if(coins >= 25 && !isFinished) { coins -= 25; userGuess = words[current % words.length].a.split(''); updateBoxes(); finish(); }
     }
 
     function startTimer() {
