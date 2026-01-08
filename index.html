@@ -1,1 +1,282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <title>WordZen</title>
+    <style>
+        :root { --neon-green: #00ff88; --neon-red: #ff3e3e; --neon-gold: #ffd700; --neon-blue: #00d4ff; }
+        body { 
+            margin: 0; background: #000; color: white; overflow: hidden;
+            font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; 
+            height: 100vh; width: 100%; position: fixed;
+        }
 
+        /* 1. GİRİŞ ANİMASYONU (DOKUNULMADI - KLASİK) */
+        #splash { 
+            position: fixed; inset: 0; background: #000; z-index: 2000; 
+            display: flex; justify-content: center; align-items: center; 
+            transition: opacity 1s ease; 
+        }
+        .s-logo { 
+            font-size: 3rem; font-weight: 200; color: #fff; letter-spacing: 15px; 
+            opacity: 0; animation: zenFade 4s ease-in-out forwards; 
+        }
+        @keyframes zenFade {
+            0% { opacity: 0; transform: scale(0.8); letter-spacing: 5px; }
+            50% { opacity: 1; transform: scale(1); letter-spacing: 15px; }
+            100% { opacity: 0; transform: scale(1.1); letter-spacing: 20px; }
+        }
+
+        /* 2. OYUN İÇİ MAVİ NEON LOGO (SABİT) */
+        #header-logo {
+            margin-top: 20px; font-size: 2.2rem; font-weight: 200; letter-spacing: 10px;
+            color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue);
+            animation: blueBreath 3s infinite ease-in-out;
+            user-select: none;
+        }
+        @keyframes blueBreath {
+            0%, 100% { opacity: 0.5; text-shadow: 0 0 10px var(--neon-blue); }
+            50% { opacity: 1; text-shadow: 0 0 30px var(--neon-blue), 0 0 50px var(--neon-blue); }
+        }
+
+        /* 3. ARAYÜZ VE KART */
+        #top-bar { width: 100%; padding: 10px 25px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        #hint-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 12px; border-radius: 12px; color: #fff; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; font-size: 0.7rem;
+        }
+        .hint-active { border-color: var(--neon-gold) !important; color: var(--neon-gold) !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+
+        #level-card {
+            margin-top: 35px; padding: 12px 35px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        #level-title { font-size: 0.75rem; letter-spacing: 3px; color: #aaa; margin-bottom: 5px; }
+        #level-status { font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        .status-easy { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
+        .status-hard { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
+
+        /* 4. KELİME KUTULARI VE İMLEÇ */
+        #word-container { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 0 15px; cursor: pointer; }
+        .letter-box { 
+            width: 35px; height: 48px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; font-weight: bold; background: rgba(255,255,255,0.02);
+            position: relative; transition: 0.3s;
+        }
+        .active-box::after {
+            content: ''; position: absolute; bottom: 8px; width: 60%; height: 2px;
+            background: var(--neon-green); animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        #next-btn {
+            display: none; margin-top: 25px; padding: 12px 40px; background: var(--neon-green);
+            color: #000; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
+        footer { position: fixed; bottom: 10px; font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 3px; }
+        .correct-neon { border-color: var(--neon-green) !important; box-shadow: 0 0 15px var(--neon-green); color: var(--neon-green); }
+        .wrong-neon { border-color: var(--neon-red) !important; box-shadow: 0 0 15px var(--neon-red); color: var(--neon-red); }
+    </style>
+</head>
+<body onclick="focusInput()">
+
+<div id="splash"><div class="s-logo">WordZen</div></div>
+
+<div id="header-logo">WordZen</div>
+
+<div id="top-bar">
+    <div style="font-size: 1.2rem;">🪙 <span id="coin-txt">0</span></div>
+    <div id="hint-btn" onclick="useHint(event)"><span>💡</span><span>12 Jeton</span></div>
+</div>
+
+<div id="level-card">
+    <div id="level-title">BÖLÜM <span id="lvl-num">1</span></div>
+    <div id="level-status" class="status-easy">KOLAY</div>
+</div>
+
+<div id="word-container"></div>
+<button id="next-btn" onclick="nextLevel()">SONRAKİ BÖLÜM →</button>
+
+<input type="text" id="hidden-input" autocomplete="off" spellcheck="false">
+
+<footer>© 2026 WordZen - NO COPYRIGHT</footer>
+
+<audio id="snd-clap" src="https://www.soundjay.com/human/applause-01.mp3"></audio>
+
+<script>
+    // TAM 100 KELİMELİK LİSTE (Zorluk Seviyeleri Dahil)
+    const levels = [
+        {a:"ADA", h:[0], s:"KOLAY"}, {a:"ARI", h:[1], s:"KOLAY"}, {a:"ÜTÜ", h:[0], s:"KOLAY"}, {a:"EGE", h:[1], s:"KOLAY"}, {a:"JET", h:[2], s:"KOLAY"},
+        {a:"KAPI", h:[0,2], s:"KOLAY"}, {a:"MASA", h:[1,3], s:"KOLAY"}, {a:"KUZU", h:[0,2], s:"KOLAY"}, {a:"OKUL", h:[1,3], s:"KOLAY"}, {a:"ELMA", h:[0,2], s:"KOLAY"},
+        {a:"KİTAP", h:[0,3], s:"ORTA"}, {a:"KALEM", h:[1,4], s:"ORTA"}, {a:"DENİZ", h:[0,2], s:"ORTA"}, {a:"GÜNEŞ", h:[1,3], s:"ORTA"}, {a:"LÜGAT", h:[1,4], s:"ZOR"},
+        {a:"BARDAK", h:[0,2,4], s:"ORTA"}, {a:"GÖZLÜK", h:[1,3,5], s:"ZOR"}, {a:"TOPRAK", h:[0,3,5], s:"ORTA"}, {a:"YAPRAK", h:[1,4], s:"ORTA"}, {a:"SÖZLÜK", h:[0,2,4], s:"ZOR"},
+        {a:"MERHABA", h:[0,2,5], s:"ORTA"}, {a:"TELEFON", h:[1,3,6], s:"ORTA"}, {a:"PENCERE", h:[0,3,5], s:"ORTA"}, {a:"KAYISI", h:[1,4], s:"ORTA"}, {a:"KESTANE", h:[0,3,6], s:"ORTA"},
+        {a:"AYAKKABI", h:[0,2,4,6], s:"GELİŞMİŞ"}, {a:"BİSİKLET", h:[1,4,7], s:"GELİŞMİŞ"}, {a:"DOMATES", h:[0,3,5], s:"ORTA"}, {a:"ZÜRAFA", h:[1,4], s:"ZOR"}, {a:"KELEBEK", h:[0,3,6], s:"ORTA"},
+        {a:"ÇİKOLATA", h:[0,2,4,7], s:"İLERİ"}, {a:"MANDALİNA", h:[1,4,7], s:"İLERİ"}, {a:"MİNARE", h:[0,2], s:"ORTA"}, {a:"ŞEMSİYE", h:[1,4,6], s:"ORTA"}, {a:"LOKANTA", h:[0,3,5], s:"ORTA"},
+        {a:"BİLGİSAYAR", h:[0,2,4,6,8], s:"EFSANE"}, {a:"KÜTÜPHANE", h:[1,4,7], s:"İLERİ"}, {a:"DİKKATLİ", h:[0,3,6], s:"ORTA"}, {a:"TEKNOLOJİ", h:[1,4,8], s:"EFSANE"}, {a:"PSİKOLOJİ", h:[0,4,7], s:"EFSANE"},
+        {a:"AVUKAT", h:[1,4], s:"ORTA"}, {a:"BAKKAL", h:[0,3], s:"ORTA"}, {a:"CEVİZ", h:[1,3], s:"ORTA"}, {a:"ÇADIR", h:[0,4], s:"ORTA"}, {a:"DAVUL", h:[1,3], s:"ORTA"},
+        {a:"FENER", h:[0,2], s:"ORTA"}, {a:"GAZETE", h:[1,4], s:"ORTA"}, {a:"HAMAK", h:[0,3], s:"ORTA"}, {a:"IHLAMUR", h:[1,4,6], s:"ZOR"}, {a:"İSKELE", h:[0,3,5], s:"ORTA"},
+        {a:"JİLET", h:[1,3], s:"ZOR"}, {a:"KAVUN", h:[0,4], s:"ORTA"}, {a:"LAMBA", h:[1,3], s:"ORTA"}, {a:"MAKAS", h:[0,4], s:"ORTA"}, {a:"NANE", h:[1,3], s:"KOLAY"},
+        {a:"ÖRDEK", h:[0,3], s:"ORTA"}, {a:"PASTANE", h:[1,4,6], s:"ORTA"}, {a:"RADYO", h:[0,4], s:"ORTA"}, {a:"SABUN", h:[1,3], s:"ORTA"}, {a:"TEPSİ", h:[0,4], s:"ORTA"},
+        {a:"UÇURTMA", h:[1,4,6], s:"ZOR"}, {a:"ÜZÜM", h:[1,3], s:"KOLAY"}, {a:"VİŞNE", h:[0,4], s:"ORTA"}, {a:"YALAN", h:[1,3], s:"KOLAY"}, {a:"ZEYTİN", h:[0,3,5], s:"ORTA"},
+        {a:"AHTAPOT", h:[0,3,6], s:"ZOR"}, {a:"BALİNA", h:[1,4], s:"ORTA"}, {a:"CİĞER", h:[0,3], s:"ORTA"}, {a:"ÇAKMAK", h:[1,4], s:"ORTA"}, {a:"DOKTOR", h:[0,3,5], s:"ORTA"},
+        {a:"ELBİSE", h:[1,4], s:"ORTA"}, {a:"FABRİKA", h:[0,3,6], s:"ZOR"}, {a:"GARSON", h:[1,4], s:"ORTA"}, {a:"HAVUZ", h:[0,3], s:"ORTA"}, {a:"İTFAİYE", h:[1,4,6], s:"ZOR"},
+        {a:"KAMYON", h:[0,3,5], s:"ORTA"}, {a:"LEĞEN", h:[1,3], s:"ORTA"}, {a:"MERCEK", h:[0,3,5], s:"ORTA"}, {a:"NODÜL", h:[1,4], s:"ZOR"}, {a:"ORMAN", h:[0,3], s:"ORTA"},
+        {a:"PİJAMA", h:[1,4], s:"ORTA"}, {a:"REÇEL", h:[0,3], s:"ORTA"}, {a:"SİNCAP", h:[1,4], s:"ORTA"}, {a:"TAVŞAN", h:[0,3,5], s:"ORTA"}, {a:"UYGULAMA", h:[1,4,7], s:"EFSANE"},
+        {a:"ÜNİVERSİTE", h:[0,3,6,9], s:"EFSANE"}, {a:"VALİZ", h:[1,3], s:"ORTA"}, {a:"YOĞURT", h:[0,3,5], s:"ORTA"}, {a:"ZANAAT", h:[1,4], s:"ZOR"}, {a:"ANTRENMAN", h:[0,4,8], s:"EFSANE"},
+        {a:"BAŞARI", h:[1,4], s:"ORTA"}, {a:"COĞRAFYA", h:[0,3,6], s:"ZOR"}, {a:"DONDURMA", h:[1,4,7], s:"İLERİ"}, {a:"EJDERHA", h:[0,3,6], s:"ZOR"}, {a:"FOTOĞRAF", h:[1,4,7], s:"İLERİ"},
+        {a:"GÖKKUŞAĞI", h:[0,3,6,8], s:"EFSANE"}, {a:"HAYALET", h:[1,4], s:"ORTA"}, {a:"ISPANAK", h:[0,3,6], s:"ORTA"}, {a:"İSTASYON", h:[1,4,7], s:"İLERİ"}, {a:"KÜREK", h:[0,3], s:"ORTA"}
+    ];
+
+    let currentLevel = parseInt(localStorage.getItem('wordzen_level')) || 0;
+    let coins = parseInt(localStorage.getItem('wordzen_coins')) || 0; 
+    let userGuess = [];
+    let isLocked = false;
+    const hiddenInput = document.getElementById('hidden-input');
+
+    function focusInput() { if(!isLocked) hiddenInput.focus(); }
+
+    function initGame() {
+        isLocked = false;
+        hiddenInput.value = "";
+        document.getElementById('next-btn').style.display = "none";
+        const level = levels[currentLevel % levels.length];
+
+        document.getElementById('lvl-num').innerText = currentLevel + 1;
+        const statusEl = document.getElementById('level-status');
+        statusEl.innerText = level.s;
+        statusEl.className = (level.s === "ZOR" || level.s === "EFSANE" || level.s === "İLERİ") ? "status-hard" : "status-easy";
+
+        updateUI();
+        const container = document.getElementById('word-container');
+        container.innerHTML = ""; userGuess = [];
+
+        level.a.split('').forEach((char, i) => {
+            const box = document.createElement('div');
+            box.className = 'letter-box';
+            if (level.h.includes(i)) {
+                box.innerText = char;
+                box.classList.add('correct-neon');
+                userGuess[i] = char;
+            } else {
+                userGuess[i] = null;
+            }
+            container.appendChild(box);
+        });
+        updateCursor();
+        focusInput();
+    }
+
+    // I/İ HARF DÜZELTMESİ (Tam İstediğin Gibi)
+    hiddenInput.oninput = (e) => {
+        if(isLocked) return;
+        let char = e.target.value.slice(-1);
+        if (char === 'i' || char === 'İ') char = 'İ';
+        else if (char === 'ı' || char === 'I') char = 'I';
+        else char = char.toUpperCase();
+
+        let emptyIdx = userGuess.indexOf(null);
+        if(emptyIdx !== -1 && /[A-ZÇĞİÖŞÜ]/.test(char)) {
+            userGuess[emptyIdx] = char;
+            document.getElementsByClassName('letter-box')[emptyIdx].innerText = char;
+            updateCursor();
+            if(!userGuess.includes(null)) check();
+        }
+        hiddenInput.value = "";
+    };
+
+    hiddenInput.onkeydown = (e) => {
+        if(e.key === "Backspace") {
+            for(let i=userGuess.length-1; i>=0; i--) {
+                if(!levels[currentLevel % levels.length].h.includes(i) && userGuess[i] !== null) {
+                    userGuess[i] = null;
+                    document.getElementsByClassName('letter-box')[i].innerText = "";
+                    updateCursor();
+                    break;
+                }
+            }
+        }
+    };
+
+    function updateCursor() {
+        const boxes = document.getElementsByClassName('letter-box');
+        Array.from(boxes).forEach(b => b.classList.remove('active-box'));
+        let emptyIdx = userGuess.indexOf(null);
+        if (emptyIdx !== -1 && !isLocked) { boxes[emptyIdx].classList.add('active-box'); }
+    }
+
+    function check() {
+        isLocked = true;
+        updateCursor();
+        const boxes = document.getElementsByClassName('letter-box');
+        const correctWord = levels[currentLevel % levels.length].a;
+
+        if(userGuess.join('') === correctWord) {
+            Array.from(boxes).forEach(b => { b.classList.add('correct-neon'); b.classList.remove('active-box'); });
+            document.getElementById('snd-clap').play();
+            coins += 4;
+            saveData();
+            document.getElementById('next-btn').style.display = "block";
+        } else {
+            Array.from(boxes).forEach(b => b.classList.add('wrong-neon'));
+            setTimeout(() => {
+                Array.from(boxes).forEach((b, i) => {
+                    if(!levels[currentLevel % levels.length].h.includes(i)) {
+                        b.classList.remove('wrong-neon');
+                        b.innerText = "";
+                        userGuess[i] = null;
+                    }
+                });
+                isLocked = false;
+                updateCursor();
+                focusInput();
+            }, 1000);
+        }
+        updateUI();
+    }
+
+    function useHint(e) {
+        e.stopPropagation();
+        if (isLocked || coins < 12) return;
+        let emptyIndices = userGuess.map((v, i) => v === null ? i : null).filter(v => v !== null);
+        if (emptyIndices.length > 0) {
+            coins -= 12;
+            let rand = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+            let char = levels[currentLevel % levels.length].a[rand];
+            userGuess[rand] = char;
+            const boxes = document.getElementsByClassName('letter-box');
+            boxes[rand].innerText = char;
+            boxes[rand].classList.add('correct-neon');
+            saveData();
+            updateUI();
+            updateCursor();
+            if(!userGuess.includes(null)) check();
+        }
+    }
+
+    function nextLevel() { currentLevel++; saveData(); initGame(); }
+    function saveData() { localStorage.setItem('wordzen_level', currentLevel); localStorage.setItem('wordzen_coins', coins); }
+    function updateUI() {
+        document.getElementById('coin-txt').innerText = coins;
+        const btn = document.getElementById('hint-btn');
+        btn.className = (coins >= 12) ? 'hint-active' : 'hint-passive';
+    }
+
+    window.onload = () => {
+        setTimeout(() => { 
+            document.getElementById('splash').style.opacity = "0"; 
+            setTimeout(() => { document.getElementById('splash').style.display = "none"; focusInput(); }, 1000); 
+        }, 4000);
+        initGame();
+    };
+</script>
+</body>
+</html>
