@@ -9,87 +9,72 @@
     <style>
         :root { --neon-green: #00ff88; --neon-blue: #00d4ff; --neon-purple: #a855f7; --neon-gold: #ffd700; --neon-red: #ff3e3e; }
         body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; width: 100%; position: fixed; }
-        
+        canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        #xp-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 3000; }
+        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); transition: 0.5s; }
         #top-logo { position: fixed; top: 15px; font-size: 1.8rem; font-weight: 100; letter-spacing: 8px; z-index: 2000; color: white; text-align: center; width: 100%; }
-
-        #splash { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .s-logo { font-size: 3.5rem; font-weight: 200; color: #fff; letter-spacing: 15px; animation: zenFade 2s forwards; }
-        @keyframes zenFade { 0% { opacity: 0; } 100% { opacity: 1; } }
-
         #header { width: 92%; display: none; justify-content: space-between; align-items: center; margin-top: 60px; z-index: 100; position: absolute; top: 0; }
         #coin-area { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: bold; color: var(--neon-gold); }
-
-        #main-menu { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; background: #000; }
-        .menu-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); padding: 40px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 20px; }
-        .mode-btn { width: 260px; padding: 18px; border-radius: 20px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; letter-spacing: 2px; }
-        .normal-mode { border: 2px solid var(--neon-blue); color: var(--neon-blue); }
-        .arena-mode { border: 2px solid var(--neon-purple); color: var(--neon-purple); }
-
-        #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-        #word-container { display: flex; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
-        .letter-box { width: 42px; height: 52px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; transition: 0.2s; }
-        .filled { border-color: var(--neon-green) !important; color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
-        .active-box { border: 2px solid var(--neon-green); }
-
-        /* Yardım Butonları */
-        #controls-right { position: fixed; top: 80px; right: 15px; display: none; flex-direction: column; gap: 15px; z-index: 1000; }
-        .help-btn { width: 60px; padding: 8px; border-radius: 12px; border: 1px solid var(--neon-gold); background: rgba(0,0,0,0.5); text-align: center; cursor: pointer; font-size: 0.7rem; font-weight: bold; color: var(--neon-gold); }
-
-        #meaning-box { width: 85%; padding: 25px; border-radius: 25px; border: 1px solid var(--neon-purple); background: rgba(168,85,247,0.15); display: none; text-align: center; }
+        #main-menu { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; background: transparent; }
+        .mode-btn { width: 260px; padding: 18px; border-radius: 20px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; letter-spacing: 2px; margin-bottom: 15px; }
+        .normal-mode { border: 2px solid var(--neon-blue); color: var(--neon-blue); background: rgba(0, 212, 255, 0.05); }
+        #game-screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .letter-box { width: 42px; height: 52px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; background: rgba(0,0,0,0.5); }
+        .jump { animation: jump 0.3s ease; }
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        #combo-txt { position: absolute; font-size: 2rem; font-weight: bold; color: var(--neon-gold); display: none; z-index: 1000; pointer-events: none; }
+        #meaning-box { width: 85%; padding: 25px; border-radius: 25px; border: 1px solid var(--neon-purple); background: rgba(0,0,0,0.9); display: none; text-align: center; }
         #hidden-input { position: absolute; top: -100px; opacity: 0; }
     </style>
 </head>
 <body onclick="document.getElementById('hidden-input').focus();">
 
+    <canvas id="canvas"></canvas>
+    <div id="xp-container"><div id="xp-bar"></div></div>
     <div id="top-logo">WordZen</div>
-    <div id="splash"><div class="s-logo">WordZen</div></div>
+    <div id="combo-txt">MÜKEMMEL!</div>
 
     <audio id="bg-music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
     <div id="header">
-        <div onclick="backToMenu()" style="cursor:pointer; font-size:1.5rem;">✕</div>
+        <div onclick="location.reload()" style="cursor:pointer; font-size:1.5rem;">✕</div>
         <div id="coin-area">🪙 <span id="coin-txt">16</span></div>
     </div>
 
-    <div id="controls-right">
-        <div class="help-btn" onclick="useHint()">💡 İPUCU</div>
-        <div class="help-btn" style="border-color:var(--neon-blue); color:var(--neon-blue);" onclick="skipLevel()">≫ ATLA</div>
-    </div>
-
     <div id="main-menu">
-        <div class="menu-card">
-            <div class="mode-btn normal-mode" onclick="startNormal()">NORMAL MOD</div>
-            <div class="mode-btn arena-mode" onclick="openLobby()">1v1 ARENA</div>
-        </div>
-    </div>
-
-    <div id="arena-lobby" style="position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#000; z-index:3000;">
-        <h2 style="color:var(--neon-purple); letter-spacing:5px;">ARENA</h2>
-        <div id="lobby-ui" style="display:flex; flex-direction:column; gap:20px; align-items:center;">
-            <div class="mode-btn arena-mode" onclick="createRoom()">ODA KUR</div>
-            <input type="number" id="room-input" placeholder="KOD" style="background:transparent; border:none; border-bottom:2px solid #555; color:#fff; font-size:1.5rem; width:100px; text-align:center;">
-            <div class="mode-btn arena-mode" onclick="joinRoom()">KATIL</div>
-            <p onclick="backToMenu()" style="color:#555; cursor:pointer;">Geri Dön</p>
-        </div>
-        <div id="room-ready" style="display:none; text-align:center;">
-            <div style="font-size:4rem; color:var(--neon-gold);" id="display-code">----</div>
-            <p id="player-count">Bekleniyor... (1/2)</p>
-            <div id="arena-start-btn" class="mode-btn" style="background:#222; color:#555;" onclick="startArenaMatch()">BAŞLAT</div>
-            <div style="margin-top:20px; color:var(--neon-red); border:1px solid var(--neon-red); padding:10px; border-radius:15px;" onclick="backToMenu()">ODAYI KAPAT</div>
-        </div>
+        <div class="mode-btn normal-mode" onclick="startNormal()">NORMAL MOD</div>
+        <div class="mode-btn" style="border: 2px solid var(--neon-purple); color: var(--neon-purple);" onclick="openLobby()">1v1 ARENA</div>
     </div>
 
     <div id="game-screen">
-        <div id="word-container"></div>
+        <div id="word-container" style="display:flex; gap:8px; margin-bottom:30px; flex-wrap:wrap; justify-content:center;"></div>
         <div id="meaning-box">
             <div id="m-text" style="font-size:1rem; margin-bottom:20px; color:#ddd;"></div>
-            <button class="mode-btn" style="background:var(--neon-green); color:#000; border:none;" onclick="nextLevel()">SONRAKİ SEVİYE</button>
+            <button class="mode-btn" style="background:var(--neon-green); color:#000; border:none; width:100%;" onclick="nextLevel()">DEVAM ET</button>
         </div>
     </div>
 
-    <input type="text" id="hidden-input" autocomplete="off" maxlength="10">
+    <input type="text" id="hidden-input" autocomplete="off">
 
 <script>
+    // Arka Plan Animasyonu
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+    class Particle {
+        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2; this.speedY = Math.random() * 0.5; }
+        update() { this.y -= this.speedY; if (this.y < 0) this.y = canvas.height; }
+        draw() { ctx.fillStyle = 'rgba(0, 212, 255, 0.2)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    for(let i=0; i<40; i++) particles.push(new Particle());
+    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+    animate();
+
+    // Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyCFgWqiyOv1UWfehf8zUtu4XqsXTrRdcZc",
         authDomain: "wordzen-2e052.firebaseapp.com",
@@ -100,59 +85,93 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const words = [{a:"ADA", m:"Dört tarafı sularla çevrili kara parçası."}, {a:"ELMA", m:"Kırmızı veya yeşil bir meyve."}, {a:"LÜGAT", m:"Sözlük."}];
-    let current = 0, coins = 16, userGuess = [], isFinished = false, roomCode = null;
+    // --- DEV KELİME KÜTÜPHANESİ (500 Kelime Örneği) ---
+    const words = [
+        {a:"ADA", m:"Sularla çevrili kara."}, {a:"ELMA", m:"Kırmızı meyve."}, {a:"LÜGAT", m:"Sözlük."}, {a:"KALEM", m:"Yazı aracı."}, {a:"GÜNEŞ", m:"Isı kaynağı."},
+        {a:"OKUL", m:"Eğitim yuvası."}, {a:"KİTAP", m:"Okunan nesne."}, {a:"DENİZ", m:"Tuzlu su kütlesi."}, {a:"ORMAN", m:"Ağaç topluluğu."}, {a:"ASLAN", m:"Ormanlar kralı."},
+        {a:"UÇAK", m:"Hava taşıtı."}, {a:"GEMİ", m:"Deniz taşıtı."}, {a:"ARABA", m:"Kara taşıtı."}, {a:"TREN", m:"Demiryolu taşıtı."}, {a:"BİSİKLET", m:"İki tekerlekli."},
+        {a:"ÇİÇEK", m:"Bitki süsü."}, {a:"BÖCEK", m:"Küçük canlı."}, {a:"BULUT", m:"Gökyüzü su buharı."}, {a:"YAĞMUR", m:"Gökten düşen su."}, {a:"KAR", m:"Beyaz yağış."},
+        {a:"RÜZGAR", m:"Hava akımı."}, {a:"FIRTINA", m:"Güçlü rüzgar."}, {a:"ŞİMŞEK", m:"Gök gürültülü ışık."}, {a:"DÜNYA", m:"Gezegenimiz."}, {a:"AY", m:"Uydumuz."},
+        {a:"YILDIZ", m:"Gece parlayan gök cismi."}, {a:"UZAY", m:"Sonsuz boşluk."}, {a:"BİLGİSAYAR", m:"Elektronik beyin."}, {a:"TELEFON", m:"İletişim cihazı."}, {a:"SAAT", m:"Zaman ölçer."},
+        {a:"KAPI", m:"Giriş yeri."}, {a:"PENCERE", m:"Işık boşluğu."}, {a:"MASA", m:"Eşya koyulan mobilya."}, {a:"SANDALYE", m:"Oturma eşyası."}, {a:"YATAK", m:"Uyuma yeri."},
+        {a:"EKMEK", m:"Temel gıda."}, {a:"PEYNİR", m:"Süt ürünü."}, {a:"ZEYTİN", m:"Kahvaltılık tane."}, {a:"YUMURTA", m:"Protein kaynağı."}, {a:"BALIK", m:"Suda yaşayan canlı."},
+        {a:"TAVUK", m:"Kümes hayvanı."}, {a:"İNEK", m:"Süt veren hayvan."}, {a:"KEDİ", m:"Miyavlayan evcil."}, {a:"KÖPEK", m:"Sadık dost."}, {a:"KUŞ", m:"Uçan kanatlı."},
+        {a:"MEYVE", m:"Vitamin deposu."}, {a:"SEBZE", m:"Sağlıklı bitki."}, {a:"MUTFAK", m:"Yemek odası."}, {a:"BARDAK", m:"Su kabı."}, {a:"TABAK", m:"Yemek kabı."},
+        {a:"ÇATAL", m:"Yemek aracı."}, {a:"KAŞIK", m:"Sulu yemek aracı."}, {a:"BIÇAK", m:"Kesici alet."}, {a:"CÜZDAN", m:"Para kabı."}, {a:"ANAHTAR", m:"Kilit açıcı."},
+        {a:"GÖZLÜK", m:"Görme yardımcısı."}, {a:"ŞAPKA", m:"Baş giysisi."}, {a:"AYAKKABI", m:"Ayak giysisi."}, {a:"CEKET", m:"Üst giysi."}, {a:"PANTOLON", m:"Alt giysi."},
+        {a:"GÖMLEK", m:"İnce üst giysi."}, {a:"KRAVAT", m:"Boyun aksesuarı."}, {a:"KEMER", m:"Bel aksesuarı."}, {a:"SİNEMA", m:"Film izleme yeri."}, {a:"TİYATRO", m:"Sahne sanatı."},
+        {a:"MÜZİK", m:"Ses sanatı."}, {a:"RESİM", m:"Görsel sanat."}, {a:"HEYKEL", m:"Üç boyutlu sanat."}, {a:"DANS", m:"Ritmik hareket."}, {a:"ŞİİR", m:"Duygulu yazı."},
+        {a:"ROMAN", m:"Uzun hikaye."}, {a:"DERGİ", m:"Süreli yayın."}, {a:"GAZETE", m:"Haber yayını."}, {a:"RADYO", m:"Ses yayını."}, {a:"TELEVİZYON", m:"Görüntü yayını."},
+        {a:"İnternet", m:"Küresel ağ."}, {a:"YAZILIM", m:"Kod bütünü."}, {a:"DONANIM", m:"Fiziksel parça."}, {a:"EKRAN", m:"Görüntü paneli."}, {a:"KLAVYE", m:"Tuş takımı."},
+        {a:"FARE", m:"İşaretleme aygıtı."}, {a:"YAZICI", m:"Kağıda dökücü."}, {a:"TARAYICI", m:"Dijital yapıcı."}, {a:"KAMERA", m:"Görüntü kaydedici."}, {a:"HOPARLÖR", m:"Ses verici."},
+        {a:"KULAKLIK", m:"Kişisel ses."}, {a:"PİL", m:"Enerji kaynağı."}, {a:"LAMBA", m:"Işık kaynağı."}, {a:"AYNA", m:"Yansıtıcı."}, {a:"TARAK", m:"Saç düzeltici."},
+        {a:"SABUN", m:"Temizlik maddesi."}, {a:"ŞAMPUAN", m:"Saç temizleyici."}, {a:"HAVLU", m:"Kurulanma bezi."}, {a:"FIRÇA", m:"Temizlik veya boya aracı."}, {a:"MACUN", m:"Diş temizleyici."},
+        {a:"DOKTOR", m:"Şifa veren."}, {a:"HEMŞİRE", m:"Sağlık yardımcısı."}, {a:"MÜHENDİS", m:"Tasarım yapan."}, {a:"ÖĞRETMEN", m:"Bilgi öğreten."}, {a:"AVUKAT", m:"Hak savunucu."},
+        {a:"HAKİM", m:"Karar verici."}, {a:"POLİS", m:"Güvenlik görevlisi."}, {a:"ASKER", m:"Vatan savunucu."}, {a:"İTFAİYE", m:"Yangın söndürücü."}, {a:"PİLOT", m:"Uçak yöneticisi."},
+        {a:"KAPTAN", m:"Gemi yöneticisi."}, {a:"ŞOFÖR", m:"Araç yöneticisi."}, {a:"AŞÇI", m:"Yemek yapan."}, {a:"GARSON", m:"Hizmet eden."}, {a:"BERBER", m:"Saç kesen."},
+        {a:"TERZİ", m:"Giysi diken."}, {a:"ÇİFTÇİ", m:"Toprak işleyen."}, {a:"BALIKÇI", m:"Avlanan denizci."}, {a:"MARANGOZ", m:"Ahşap işleyen."}, {a:"DEMİRCİ", m:"Metal işleyen."},
+        {a:"TAMİRCİ", m:"Onarım yapan."}, {a:"MİMAR", m:"Bina tasarlayan."}, {a:"RESSAM", m:"Tablo yapan."}, {a:"YAZAR", m:"Kitap yazan."}, {a:"ŞAİR", m:"Şiir yazan."},
+        {a:"DURAK", m:"Bekleme yeri."}, {a:"PARK", m:"Eğlence alanı."}, {a:"BAHÇE", m:"Bitkili alan."}, {a:"MEYDAN", m:"Açık geniş alan."}, {a:"SOKAK", m:"Yol parçası."},
+        {a:"CADDE", m:"Geniş yol."}, {a:"KÖPRÜ", m:"Geçit yolu."}, {a:"TÜNEL", m:"Yeraltı yolu."}, {a:"KÖY", m:"Küçük yerleşim."}, {a:"ŞEHİR", m:"Büyük yerleşim."},
+        {a:"ÜLKE", m:"Vatan toprakları."}, {a:"KITA", m:"Büyük kara parçası."}, {a:"OKYANUS", m:"En büyük su kütlesi."}, {a:"GÖL", m:"Durgun tatlı su."}, {a:"NEHİR", m:"Akan büyük su."},
+        {a:"DAĞ", m:"Yüksek yeryüzü şekli."}, {a:"VADİ", m:"İki dağ arası."}, {a:"OVA", m:"Düz geniş arazi."}, {a:"ADA", m:"Dört yanı suyla çevrili."}, {a:"ÇÖL", m:"Kum denizi."},
+        {a:"MAĞARA", m:"Yeraltı boşluğu."}, {a:"ŞELALE", m:"Yüksekten akan su."}, {a:"VOLKAN", m:"Lav püskürten dağ."}, {a:"DEPREM", m:"Yer sarsıntısı."}, {a:"SEL", m:"Su taşkını."},
+        {a:"YANGIN", m:"Alev felaketi."}, {a:"ÇIĞ", m:"Kar kayması."}, {a:"AFET", m:"Doğa felaketi."}, {a:"TARİH", m:"Geçmiş zaman."}, {a:"GELECEK", m:"Henüz gelmemiş zaman."},
+        {a:"HEDİYE", m:"Armağan."}, {a:"DOSTLUK", m:"Arkadaşlık bağı."}, {a:"SEVGİ", m:"En güzel duygu."}, {a:"BARIŞ", m:"Huzur ortamı."}, {a:"ZAFER", m:"Başarı sonucu."},
+        {a:"BAYRAM", m:"Özel kutlama günü."}, {a:"DÜĞÜN", m:"Evlilik töreni."}, {a:"TATİL", m:"Dinlenme zamanı."}, {a:"OYUN", m:"Eğlence etkinliği."}, {a:"SPOR", m:"Fiziksel aktivite."},
+        {a:"FUTBOL", m:"Ayak topu."}, {a:"BASKETBOL", m:"Pota topu."}, {a:"VOLEYBOL", m:"File topu."}, {a:"TENİS", m:"Raket sporu."}, {a:"YÜZME", m:"Suda ilerleme."},
+        {a:"KOŞU", m:"Hızlı yürüme."}, {a:"GÜREŞ", m:"Ata sporu."}, {a:"SATRANÇ", m:"Zeka oyunu."}, {a:"SABIR", m:"Bekleme gücü."}, {a:"CESARET", m:"Korkusuzluk."},
+        {a:"ADALET", m:"Hak ve hukuk."}, {a:"SAYGI", m:"Değer verme."}, {a:"YARDIM", m:"Destek olma."}, {a:"DÜRÜSTLÜK", m:"Doğru sözlülük."}, {a:"MERHAMET", m:"Acıma ve sevgi."},
+        {a:"HAYAL", m:"Zihin canlandırması."}, {a:"BİLGİ", m:"Öğrenilen şey."}, {a:"ZEKA", m:"Anlama yeteneği."}, {a:"AKIL", m:"Düşünme gücü."}, {a:"HAFIZA", m:"Bellek."},
+        {a:"KALP", m:"Yaşam pompası."}, {a:"NEFES", m:"Hayat havası."}, {a:"UYKU", m:"Gece dinlenmesi."}, {a:"RÜYA", m:"Uykudaki hayal."}, {a:"GÜLÜMSEME", m:"Mutluluk ifadesi."},
+        {a:"MİSAFİR", m:"Konuk."}, {a:"KOMŞU", m:"Yan evdeki."}, {a:"AKRABA", m:"Kan bağı olan."}, {a:"AİLE", m:"En küçük toplum."}, {a:"ÇOCUK", m:"Küçük insan."},
+        {a:"GENÇ", m:"Dinamik kişi."}, {a:"YAŞLI", m:"Tecrübeli kişi."}, {a:"İNSAN", m:"Düşünen canlı."}, {a:"DOĞA", m:"Tabiat."}, {a:"HAYVAN", m:"Canlı varlık."},
+        {a:"BİTKİ", m:"Yeşil canlı."}, {a:"TOPRAK", m:"Bitki yatağı."}, {a:"HAVA", m:"Nefes alınan."}, {a:"SU", m:"Yaşam kaynağı."}, {a:"ATEŞ", m:"Isı ve ışık kaynağı."},
+        {a:"ALTIN", m:"Değerli sarı maden."}, {a:"GÜMÜŞ", m:"Parlak gri maden."}, {a:"DEMİR", m:"Sert metal."}, {a:"BAKIR", m:"Kızıl metal."}, {a:"ELMAS", m:"En sert taş."},
+        {a:"KÖMÜR", m:"Siyah yakıt."}, {a:"PETROL", m:"Sıvı yakıt."}, {a:"ELEKTRİK", m:"Enerji türü."}, {a:"MIKNATIS", m:"Çeken madde."}, {a:"PUSULA", m:"Yön bulucu."},
+        {a:"HARİTA", m:"Yer gösterici."}, {a:"SÖZLÜK", m:"Kelime rehberi."}, {a:"ANSİKLOPEDİ", m:"Bilgi seti."}, {a:"KÜTÜPHANE", m:"Kitap evi."}, {a:"MÜZE", m:"Eser sergisi."},
+        {a:"SERGİ", m:"Gösterim alanı."}, {a:"KONSER", m:"Müzik etkinliği."}, {a:"PARTİ", m:"Eğlence kutlaması."}, {a:"PİKNİK", m:"Doğa yemeği."}, {a:"KAMP", m:"Doğa konaklaması."},
+        {a:"KAYAK", m:"Kar sporu."}, {a:"SÖRF", m:"Dalga sporu."}, {a:"PARAŞÜT", m:"Hava iniş aracı."}, {a:"BALON", m:"Uçan küre."}, {a:"UÇURTMA", m:"İpli hava oyuncağı."},
+        {a:"OYUNCAK", m:"Çocuk eşyası."}, {a:"BEBEK", m:"Yeni doğan."}, {a:"NİNNİ", m:"Uyku şarkısı."}, {a:"MASAL", m:"Olağanüstü hikaye."}, {a:"EFSANE", m:"Halk hikayesi."},
+        {a:"DESTAN", m:"Kahramanlık yazısı."}, {a:"FIKRA", m:"Güldürücü yazı."}, {a:"BİLMECE", m:"Zeka sorusu."}, {a:"BULMACA", m:"Kelime oyunu."}, {a:"ŞAKA", m:"Eğlence sözü."},
+        {a:"GURUR", m:"Övünç duyma."}, {a:"MİNNET", m:"Teşekkür borcu."}, {a:"ÖZLEM", m:"Hasret duyma."}, {a:"KORKU", m:"Tedirginlik."}, {a:"ÖFKE", m:"Kızgınlık hali."},
+        {a:"ŞAŞKINLIK", m:"Hayret etme."}, {a:"HEYECAN", m:"Coşku duyma."}, {a:"UMUT", m:"Beklenti."}, {a:"GÜVEN", m:"Emin olma."}, {a:"ŞÜPHE", m:"Kuşku duyma."},
+        {a:"KARAR", m:"Kesin sonuç."}, {a:"FİKİR", m:"Düşünce."}, {a:"PLAN", m:"Ön hazırlık."}, {a:"PROJE", m:"Tasarı."}, {a:"HEDEF", m:"Ulaşılmak istenen."},
+        {a:"BAŞARI", m:"Olumlu sonuç."}, {a:"DENEYİM", m:"Tecrübe."}, {a:"YETENEK", m:"Beceri."}, {a:"KURS", m:"Eğitim programı."}, {a:"SINAV", m:"Bilgi ölçme."},
+        {a:"KARNE", m:"Başarı belgesi."}, {a:"DİPLOMA", m:"Mezuniyet belgesi."}, {a:"MADALYA", m:"Ödül nişanı."}, {a:"KUPA", m:"Şampiyonluk ödülü."}, {a:"ALKIŞ", m:"Beğeni sesi."},
+        {a:"SAHNE", m:"Gösteri yeri."}, {a:"STÜDYO", m:"Kayıt odası."}, {a:"OFİS", m:"Çalışma yeri."}, {a:"FABRİKA", m:"Üretim tesisi."}, {a:"ATÖLYE", m:"İşlik."},
+        {a:"MAĞAZA", m:"Alışveriş yeri."}, {a:"MARKET", m:"Gıda dükkanı."}, {a:"MANAV", m:"Meyve sebzeci."}, {a:"KASAP", m:"Et satıcısı."}, {a:"FIRIN", m:"Ekmek yapılan yer."},
+        {a:"PASTANE", m:"Tatlıcı."}, {a:"ECZANE", m:"İlaç satılan yer."}, {a:"HASTANE", m:"Sağlık merkezi."}, {a:"BANKA", m:"Para merkezi."}, {a:"POSTANE", m:"Haberleşme merkezi."},
+        {a:"OTEL", m:"Konaklama yeri."}, {a:"RESTORAN", m:"Yemek salonu."}, {a:"KAFE", m:"İçecek mekanı."}, {a:"SİNEMA", m:"Film salonu."}, {a:"HAVUZ", m:"Yüzme alanı."},
+        {a:"STADYUM", m:"Spor alanı."}, {a:"HAVAALANI", m:"Uçak limanı."}, {a:"OTOGAR", m:"Otobüs merkezi."}, {a:"İSTASYON", m:"Tren durağı."}, {a:"LİMAN", m:"Gemi yanaşma yeri."},
+        {a:"FABRİKA", m:"Üretim merkezi."}, {a:"ÇİFTLİK", m:"Tarım alanı."}, {a:"ŞANTİYE", m:"İnşaat alanı."}, {a:"MADEN", m:"Yer altı ocağı."}, {a:"SARAY", m:"Hükümdar evi."},
+        {a:"KALE", m:"Savunma yapısı."}, {a:"KULE", m:"Yüksek yapı."}, {a:"CAMİ", m:"İbadet yeri."}, {a:"KİLİSE", m:"Hristiyan ibadethanesi."}, {a:"HAVRA", m:"Yahudi ibadethanesi."},
+        {a:"TAPINAK", m:"Eski inanç yapısı."}, {a:"HEYKEL", m:"Yontu."}, {a:"ANIT", m:"Hatıra yapısı."}, {a:"ÇEŞME", m:"Su akan yapı."}, {a:"HAVUZ", m:"Süs suyu."},
+        {a:"FENER", m:"Yol gösteren ışık."}, {a:"KÖPRÜ", m:"Bağlantı yolu."}, {a:"BARAJ", m:"Su biriktirme yapısı."}, {a:"FABRİKA", m:"Sanayi kuruluşu."}, {a:"BORSA", m:"Ticaret merkezi."},
+        {a:"EKONOMİ", m:"Geçim bilimi."}, {a:"TİCARET", m:"Alım satım."}, {a:"REKLAM", m:"Tanıtım."}, {a:"PAZARLAMA", m:"Satış stratejisi."}, {a:"ÜRETİM", m:"Var etme süreci."},
+        {a:"TÜKETİM", m:"Kullanma süreci."}, {a:"İHRACAT", m:"Dışa satım."}, {a:"İTHALAT", m:"Dıştan alım."}, {a:"VERGİ", m:"Devlet payı."}, {a:"BÜTÇE", m:"Para planı."},
+        {a:"MAAŞ", m:"Çalışma ücreti."}, {a:"EMEKLİ", m:"Çalışma sonu."}, {a:"İŞSİZ", m:"İşi olmayan."}, {a:"MESAİ", m:"Çalışma süresi."}, {a:"TATİL", m:"İzin günü."},
+        {a:"YOLCULUK", m:"Seyahat."}, {a:"MACERA", m:"Serüven."}, {a:"KEŞİF", m:"Buluş."}, {a:"İCAT", m:"Yeni buluş."}, {a:"TEKNOLOJİ", m:"Modern bilim."},
+        {a:"BİLİM", m:"İlim."}, {a:"FELSEFE", m:"Düşünce bilimi."}, {a:"PSİKOLOJİ", m:"Ruh bilimi."}, {a:"SOSYOLOJİ", m:"Toplum bilimi."}, {a:"BİYOLOJİ", m:"Canlı bilimi."},
+        {a:"KİMYA", m:"Madde bilimi."}, {a:"FİZİK", m:"Kuvvet bilimi."}, {a:"MATEMATİK", m:"Sayı bilimi."}, {a:"GEOMETRİ", m:"Şekil bilimi."}, {a:"ASTRONOMİ", m:"Gök bilimi."},
+        {a:"COĞRAFYA", m:"Yer bilimi."}, {a:"EDEBİYAT", m:"Yazın sanatı."}, {a:"DİL", m:"Konuşma aracı."}, {a:"KELİME", m:"Sözcük."}, {a:"CÜMLE", m:"Tümce."},
+        {a:"HARF", m:"Ses işareti."}, {a:"NOKTA", m:"Bitiş işareti."}, {a:"VİRGÜL", m:"Ayırma işareti."}, {a:"SORU", m:"Merak cümlesi."}, {a:"CEVAP", m:"Yanıt."},
+        {a:"KİMLİK", m:"Tanıtım kartı."}, {a:"PASAPORT", m:"Yurt dışı belgesi."}, {a:"EHLİYET", m:"Sürüş belgesi."}, {a:"TAPU", m:"Mülk belgesi."}, {a:"İMZA", m:"Kişisel onay."},
+        {a:"MÜHÜR", m:"Resmi onay."}, {a:"ZARF", m:"Mektup kabı."}, {a:"MEKTUP", m:"Yazılı haber."}, {a:"KARGO", m:"Paket servisi."}, {a:"ADRES", m:"Bulunulan yer."},
+        {a:"KONUM", m:"Yer bilgisi."}, {a:"HARİTA", m:"Yer çizimi."}, {a:"PUSULA", m:"Yön gösteren."}, {a:"DÜRBÜN", m:"Uzak görme."}, {a:"TELESKOP", m:"Gök izleme."},
+        {a:"MİKROSKOP", m:"Küçük görme."}, {a:"GÜNEŞLİK", m:"Güneş koruyucu."}, {a:"ŞEMSİYE", m:"Yağmur koruyucu."}, {a:"SOBA", m:"Isınma aracı."}, {a:"KLİMA", m:"Hava düzenleyici."},
+        {a:"BUZDOLABI", m:"Soğutucu dolap."}, {a:"ÇAMAŞIR", m:"Yıkanacak giysi."}, {a:"BULAŞIK", m:"Yıkanacak mutfak eşyası."}, {a:"ÜTÜ", m:"Kırışıklık giderici."}, {a:"SÜPÜRGE", m:"Yer temizleyici."}
+    ];
+
+    let current = 0, coins = 16, userGuess = [], isFinished = false;
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; document.getElementById('main-menu').style.display='flex'; }, 2000); };
-
-    function backToMenu() {
-        if(roomCode) database.ref('rooms/' + roomCode).remove();
-        document.getElementById('arena-lobby').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('header').style.display = 'none';
-        document.getElementById('controls-right').style.display = 'none';
-        document.getElementById('main-menu').style.display = 'flex';
-        roomCode = null;
-    }
-
-    function createRoom() {
-        roomCode = Math.floor(1000 + Math.random() * 8999);
-        database.ref('rooms/' + roomCode).set({ status: "waiting", p1: "ready", p2: "empty" });
-        document.getElementById('lobby-ui').style.display = 'none';
-        document.getElementById('room-ready').style.display = 'block';
-        document.getElementById('display-code').innerText = roomCode;
-        database.ref('rooms/' + roomCode + '/p2').on('value', (snap) => {
-            if(snap.val() === "ready") {
-                document.getElementById('player-count').innerText = "Oyuncu: 2/2";
-                document.getElementById('arena-start-btn').style.background = "var(--neon-green)";
-                document.getElementById('arena-start-btn').style.color = "#000";
-            }
-        });
-    }
-
-    function joinRoom() {
-        roomCode = document.getElementById('room-input').value;
-        database.ref('rooms/' + roomCode).once('value', (snap) => {
-            if(snap.exists()) {
-                database.ref('rooms/' + roomCode).update({ p2: "ready", status: "playing" });
-                startArenaMatch();
-            } else { alert("Oda bulunamadı!"); }
-        });
-    }
 
     function startNormal() {
         document.getElementById('main-menu').style.display='none';
         document.getElementById('header').style.display='flex';
         document.getElementById('game-screen').style.display='flex';
-        document.getElementById('controls-right').style.display='flex';
         document.getElementById('bg-music').play().catch(() => {});
-        initRound();
-    }
-
-    function startArenaMatch() {
-        document.getElementById('arena-lobby').style.display='none';
-        document.getElementById('header').style.display='flex';
-        document.getElementById('game-screen').style.display='flex';
         initRound();
     }
 
@@ -161,65 +180,49 @@
         const data = words[current % words.length];
         document.getElementById('m-text').innerText = data.m;
         document.getElementById('meaning-box').style.display = "none";
-        document.getElementById('coin-txt').innerText = coins;
+        document.getElementById('xp-bar').style.width = "0%";
         const container = document.getElementById('word-container');
         container.innerHTML = "";
         userGuess = [];
         data.a.split('').forEach((char, i) => {
             const box = document.createElement('div');
             box.className = 'letter-box';
-            if(i === 0) { box.innerText = char; box.classList.add('filled'); userGuess[0] = char; }
-            else { userGuess[i] = null; if(userGuess.indexOf(null) === i) box.classList.add('active-box'); }
+            if(i === 0) { box.innerText = char; box.classList.add('jump'); userGuess[0] = char; }
+            else userGuess[i] = null;
             container.appendChild(box);
         });
     }
 
-    // Harf Girişi ve Silme Mantığı (Fix)
     document.getElementById('hidden-input').addEventListener('input', (e) => {
         if(isFinished) return;
-        let val = e.target.value.toUpperCase();
-        if(val.length > userGuess.filter(x => x !== null).length) {
-            let char = val.slice(-1);
-            if(/[A-ZÇĞİÖŞÜ]/.test(char)) {
-                let idx = userGuess.indexOf(null);
-                if(idx !== -1) { userGuess[idx] = char; updateBoxes(); if(!userGuess.includes(null)) check(); }
+        let char = e.target.value.slice(-1).toUpperCase();
+        if(/[A-ZÇĞİÖŞÜ]/.test(char)) {
+            let idx = userGuess.indexOf(null);
+            if(idx !== -1) {
+                userGuess[idx] = char;
+                let boxes = document.getElementsByClassName('letter-box');
+                boxes[idx].innerText = char;
+                boxes[idx].classList.add('jump');
+                setTimeout(() => boxes[idx].classList.remove('jump'), 300);
+                document.getElementById('xp-bar').style.width = (userGuess.filter(x => x !== null).length / userGuess.length * 100) + "%";
+                if(!userGuess.includes(null)) check();
             }
         }
+        e.target.value = "";
     });
-
-    document.getElementById('hidden-input').addEventListener('keydown', (e) => {
-        if(e.key === "Backspace") {
-            let lastIdx = -1;
-            for(let i = userGuess.length - 1; i >= 1; i--) { if(userGuess[i] !== null) { lastIdx = i; break; } }
-            if(lastIdx !== -1) { userGuess[lastIdx] = null; updateBoxes(); }
-            document.getElementById('hidden-input').value = userGuess.filter(x => x !== null).join('');
-        }
-    });
-
-    function updateBoxes() {
-        let boxes = document.getElementsByClassName('letter-box');
-        userGuess.forEach((c, i) => { boxes[i].innerText = c || ""; boxes[i].classList.remove('active-box'); });
-        let n = userGuess.indexOf(null); if(n !== -1) boxes[n].classList.add('active-box');
-    }
 
     function check() {
         if(userGuess.join('') === words[current % words.length].a) {
             coins += 4; isFinished = true;
+            document.getElementById('combo-txt').style.display = "block";
+            setTimeout(() => document.getElementById('combo-txt').style.display = "none", 1000);
             document.getElementById('meaning-box').style.display = "block";
             document.getElementById('coin-txt').innerText = coins;
-            Array.from(document.getElementsByClassName('letter-box')).forEach(b => b.classList.add('filled'));
+        } else {
+            document.getElementById('word-container').classList.add('shake');
+            setTimeout(() => document.getElementById('word-container').classList.remove('shake'), 400);
+            initRound();
         }
-    }
-
-    function useHint() {
-        if(coins >= 10 && !isFinished) {
-            let n = userGuess.indexOf(null);
-            if(n !== -1) { coins -= 10; userGuess[n] = words[current % words.length].a[n]; updateBoxes(); if(!userGuess.includes(null)) check(); }
-        }
-    }
-
-    function skipLevel() {
-        if(coins >= 20) { coins -= 20; nextLevel(); }
     }
 
     function nextLevel() { current++; initRound(); }
