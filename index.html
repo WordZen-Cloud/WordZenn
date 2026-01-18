@@ -3,46 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WordZen - Hemen Oyna</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>WordZen - Hemen İndir</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b161a;
+            --card-dark: #152228;
+            --btn-blue: #007bff; 
+            --accent: #00b4d8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+        }
+
+        /* Reklam Alanı Tasarımı */
+        .ad-slot {
+            background: var(--card-dark);
+            border: 1px dashed #444;
+            height: 100px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 11px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .logo {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            object-fit: cover;
+        }
+
+        .title-area h1 { margin: 0; font-size: 28px; letter-spacing: -1px; }
+        .dev-tag { color: var(--accent); font-weight: bold; font-size: 14px; margin: 5px 0; }
+        .rating { color: #ffb400; font-size: 14px; }
+
+        /* DEV İNDİR BUTONU */
+        .download-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--btn-blue);
+            color: white;
+            text-decoration: none;
+            padding: 22px 25px;
+            border-radius: 18px;
+            border-bottom: 6px solid #0056b3;
+            transition: 0.1s;
+            margin: 10px 0;
+        }
+
+        .download-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        .dl-main {
+            display: block;
+            font-size: 34px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .dl-sub {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: bold;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .dl-icon { font-size: 40px; }
+
+        .description {
+            background: var(--card-dark);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            line-height: 1.7;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .description h3 { color: white; margin-top: 0; }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #444;
+            padding-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="ad-banner top-ad">
-            <span>REKLAM ALANI (ADSENSE)</span>
-        </div>
+        
+        <div class="ad-slot">REKLAM ALANI (Google AdSense)</div>
 
-        <div class="app-main">
-            <div class="header">
-                <img src="wordzen-logo.png" alt="WordZen Logo" class="logo">
-                <div class="title-area">
-                    <h1>WordZen</h1>
-                    <p class="dev">Şafak Vakti Studio</p>
-                    <div class="rating">⭐⭐⭐⭐⭐ 4.9 (10K+)</div>
-                </div>
-            </div>
-
-            <div class="action-box">
-                <a href="https://wordzen-oyun-linkin.com" class="btn-play">
-                    <div class="btn-content">
-                        <span class="btn-main-text">HEMEN OYNA</span>
-                        <span class="btn-sub-text">v2.0 Güncellemesi Hazır!</span>
-                    </div>
-                    <div class="btn-arrow">➜</div>
-                </a>
-            </div>
-
-            <div class="ad-banner bottom-ad">
-                <span>REKLAM ALANI (ADSENSE)</span>
-            </div>
-
-            <div class="description">
-                <h3>Oyun Hakkında</h3>
-                <p>Kelime hazneni geliştir, zihnini tazele! WordZen ile eğlenceli ve öğretici bir yolculuğa çıkmaya hazır mısın?</p>
+        <div class="header">
+            <img src="logo.png" alt="WordZen Logo" class="logo">
+            <div class="title-area">
+                <h1>WordZen</h1>
+                <p class="dev-tag">Şafak Vakti Studio</p>
+                <div class="rating">⭐⭐⭐⭐⭐ 4.9 (Editörün Seçimi)</div>
             </div>
         </div>
+
+        <a href="https://www.mediafire.com/file/5j28pcbpnnb4533/_WordZen_19416603.apk/file" target="_blank" class="download-btn">
+            <div class="dl-info">
+                <span class="dl-main">İNDİR</span>
+                <span class="dl-sub">WordZen_v1.0.apk (MediaFire)</span>
+            </div>
+            <div class="dl-icon">⬇️</div>
+        </a>
+
+        <div class="ad-slot" style="height: 150px;">REKLAM ALANI (Gelsin Paralar!)</div>
+
+        <div class="description">
+            <h3>WordZen Hakkında</h3>
+            <p>Kelime bulmaca dünyasına yepyeni bir bakış! Şafak Vakti Studio tarafından hazırlanan <b>WordZen</b> ile zihnini dinlendirirken aynı zamanda kelime dağarcığını test et. Hemen indir ve bu eşsiz deneyime ortak ol.</p>
+        </div>
+
+        <div class="ad-slot" style="height: 250px;">BÜYÜK REKLAM ALANI</div>
+
+        <footer>
+            © 2026 Şafak Vakti Studio - Tüm Hakları Saklıdır.
+        </footer>
+
     </div>
 
 </body>
