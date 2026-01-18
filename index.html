@@ -3,153 +3,123 @@
 <head>
     <meta name="google-adsense-account" content="ca-pub-3400445677558723">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3400445677558723" crossorigin="anonymous"></script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WordZen Pro</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
     <style>
-        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; font-family: 'Montserrat', sans-serif; color: white; overflow-x: hidden; }
         
-        /* Senin istediğin o özel gövde yapısı */
-        html, body { 
-            width: 100%; 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
-            background: #000; 
-            font-family: 'Montserrat', sans-serif; 
-        }
-
-        body { 
-            background: linear-gradient(180deg, #0b161a 0%, #000000 100%);
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            transition: background 1.2s ease; 
-            color: white;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            height: 100%;
+        .main-wrapper {
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            overflow-y: auto; /* İçerik taşarsa kaydırılabilsin */
-        }
-
-        /* HEADER */
-        .header {
-            display: flex;
             align-items: center;
-            gap: 15px;
-            margin: 40px 0 20px 0;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
-        }
-
-        .title-area h1 {
-            margin: 0;
-            font-size: 30px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
-
-        /* İNDİR BUTONU - TAM BİR APP BUTONU GİBİ */
-        .download-btn {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            padding: 25px;
-            border-radius: 20px;
-            margin: 20px 0;
-            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.3);
-            transition: transform 0.1s;
-        }
-
-        .download-btn:active {
-            transform: scale(0.96);
-        }
-
-        .dl-main { font-size: 32px; font-weight: 800; display: block; }
-        .dl-sub { font-size: 12px; opacity: 0.8; }
-
-        /* REKLAM ALANI */
-        .ad-wrapper {
             width: 100%;
-            margin: 20px 0;
-            min-height: 100px;
-            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            gap: 15px; /* Elemanlar arasındaki boşluğu doldurur */
+        }
+
+        /* REKLAM ALANLARI - EKRANI DOLDURAN KUTULAR */
+        .ad-box {
+            width: 100%;
+            min-height: 120px;
+            background: #111;
+            border: 2px solid #222;
             border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .footer-text {
-            margin-top: auto;
-            padding: 20px;
-            font-size: 10px;
-            color: #444;
+        /* LOGO VE BAŞLIK - DEVASA */
+        .brand-section {
             text-align: center;
+            width: 100%;
+        }
+
+        .main-logo {
+            width: 180px; /* Dev gibi logo */
+            height: 180px;
+            border-radius: 40px;
+            box-shadow: 0 0 50px rgba(0, 123, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .main-title {
+            font-size: 45px;
+            margin: 0;
+            line-height: 1;
+            background: linear-gradient(#fff, #555);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* İNDİR BUTONU - EKRANI KAPLAYAN DEVASA YAPI */
+        .big-download-btn {
+            width: 100%;
+            background: #007bff;
+            padding: 35px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 10px solid #0056b3;
+            box-shadow: 0 20px 40px rgba(0, 123, 255, 0.4);
+        }
+
+        .big-download-btn:active {
+            transform: translateY(6px);
+            border-bottom-width: 2px;
+        }
+
+        .btn-label { font-size: 50px; font-weight: 900; }
+        .btn-arrow { font-size: 60px; }
+
+        .sub-info {
+            width: 100%;
+            background: #111;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 18px;
+            border: 1px solid #333;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="main-wrapper">
         
-        <div class="ad-wrapper">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3400445677558723"
-                 data-ad-slot="8355849119"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
+        <div class="ad-box">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3400445677558723" data-ad-slot="8355849119" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
-        <div class="header">
-            <img src="logo.png" alt="WordZen" class="logo">
-            <div class="title-area">
-                <h1>WordZen Pro</h1>
-                <div style="color: #00b4d8; font-size: 14px;">OFFICIAL RELEASE</div>
-            </div>
+        <div class="brand-section">
+            <img src="logo.png" class="main-logo" alt="Logo">
+            <h1 class="main-title">WORDZEN PRO</h1>
         </div>
 
-        <a href="https://www.mediafire.com/file/5j28pcbpnnb4533/_WordZen_19416603.apk/file" target="_blank" class="download-btn">
-            <div class="dl-info">
-                <span class="dl-main">İNDİR</span>
-                <span class="dl-sub">Android APK (v1.0)</span>
-            </div>
-            <div style="font-size: 40px;">➔</div>
+        <a href="https://www.mediafire.com/file/5j28pcbpnnb4533/_WordZen_19416603.apk/file" target="_blank" class="big-download-btn">
+            <span class="btn-label">İNDİR</span>
+            <span class="btn-arrow">➔</span>
         </a>
 
-        <div class="ad-wrapper">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3400445677558723"
-                 data-ad-slot="8355849119"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
+        <div class="ad-box">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3400445677558723" data-ad-slot="8355849119" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
-        <div class="footer-text">
-            © 2026 WordZen Pro. Powered by WordZen Studio.
+        <div class="sub-info">
+            Hemen indir, en zorlu kelime bulmacalarını Pro sürümüyle çözmeye başla!
+        </div>
+
+        <div class="ad-box" style="min-height: 200px;">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3400445677558723" data-ad-slot="8355849119" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
     </div>
